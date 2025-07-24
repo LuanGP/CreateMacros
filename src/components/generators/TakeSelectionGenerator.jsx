@@ -71,13 +71,29 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     return !isNaN(value) && !isNaN(parseFloat(value))
   }
 
+  const isEffectNumberAvailable = (effectNumber, currentGroupId, currentEffectId) => {
+    return !groups.some(group => 
+      group.id !== currentGroupId && 
+      group.effects.some(effect => 
+        effect.id !== currentEffectId && 
+        effect.effectNumber === effectNumber
+      )
+    )
+  }
+
   const addEffect = (groupId) => {
     const group = groups.find(g => g.id === groupId)
-    const effectNumber = group.effects.length + 1
+    
+    // Encontrar o próximo número de efeito disponível
+    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    let nextAvailableNumber = 1
+    while (allEffectNumbers.includes(nextAvailableNumber)) {
+      nextAvailableNumber++
+    }
     
     const newEffect = {
       id: nextEffectId,
-      effectNumber: effectNumber
+      effectNumber: nextAvailableNumber
     }
     
     setGroups(groups.map(group => 
@@ -97,6 +113,19 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }
 
   const updateEffect = (groupId, effectId, field, value) => {
+    // Se estiver atualizando o número do efeito, verificar se já existe em outro grupo
+    if (field === 'effectNumber') {
+      const isDuplicate = groups.some(group => 
+        group.id !== groupId && 
+        group.effects.some(effect => effect.effectNumber === value)
+      )
+      
+      if (isDuplicate) {
+        alert(`Efeito ${value} já está sendo usado em outro grupo!`)
+        return
+      }
+    }
+    
     setGroups(groups.map(group => 
       group.id === groupId 
         ? {
@@ -197,10 +226,17 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                     type="number"
                     value={effect.effectNumber}
                     onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', parseInt(e.target.value) || 1)}
-                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                    className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                      isEffectNumberAvailable(effect.effectNumber, group.id, effect.id) 
+                        ? 'border-gray-300' 
+                        : 'border-red-500 bg-red-50'
+                    }`}
                     placeholder="Nº"
                     min="1"
                   />
+                  {!isEffectNumberAvailable(effect.effectNumber, group.id, effect.id) && (
+                    <span className="text-xs text-red-600">Já usado</span>
+                  )}
                   <button
                     onClick={() => removeEffect(group.id, effect.id)}
                     className="p-1 text-red-600 hover:text-red-700 transition-colors"

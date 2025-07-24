@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2025-07-23T22:01:48" showfile="luan atmc full" />
+	<Macro index="3" name="UpdateFX beam">
+		<Macroline index="0" delay="0.02">
+			<text>Clear</text>
+		</Macroline>
+		<Macroline index="1" delay="0.02">
+			<text>Group 1</text>
+		</Macroline>
+		<Macroline index="2" delay="0.02">
+			<text>Store Effect 1.13.* /o</text>
+		</Macroline>
+		<Macroline index="3" delay="0.02">
+			<text>Store Effect 1.14.* /o</text>
+		</Macroline>
+		<Macroline index="4" delay="0.02">
+			<text>Store Effect 1.33.* /o</text>
+		</Macroline>
+		<Macroline index="5" delay="0.02">
+			<text>Store Effect 1.1.* /o</text>
+		</Macroline>
+		<Macroline index="6" delay="0.02">
+			<text>Store Effect 1.18.* /o</text>
+		</Macroline>
+		<Macroline index="7" delay="0.02">
+			<text>Store Effect 1.12.* /o</text>
+		</Macroline>
+		<Macroline index="8" delay="0.02">
+			<text>Store Effect 1.42.* /o</text>
+		</Macroline>
+		<Macroline index="9" delay="0.02">
+			<text>Store Effect 1.43.* /o</text>
+		</Macroline>
+		<Macroline index="10" delay="0.02">
+			<text>Clear</text>
+		</Macroline>
+		<Macroline index="11" delay="0.02">
+			<text>Group 6</text>
+		</Macroline>
+		<Macroline index="12" delay="0.02">
+			<text>Store Effect 1.2.* /o</text>
+		</Macroline>
+		<Macroline index="13" delay="0.02">
+			<text>Store Effect 1.4.* /o</text>
+		</Macroline>
+		<Macroline index="14" delay="0.02">
+			<text>Store Effect 1.8.* /o</text>
+		</Macroline>
+		<Macroline index="15" delay="0.02">
+			<text>Store Effect 1.6.* /o</text>
+		</Macroline>
+		<Macroline index="16" delay="0.02">
+			<text>Clear</text>
+		</Macroline>
+		<Macroline index="17" delay="0.02">
+			<text>Group 7</text>
+		</Macroline>
+		<Macroline index="18" delay="0.02">
+			<text>Store Effect 1.3.* /o</text>
+		</Macroline>
+		<Macroline index="19" delay="0.02">
+			<text>Store Effect 1.5.* /o</text>
+		</Macroline>
+		<Macroline index="20" delay="0.02">
+			<text>Store Effect 1.7.* /o</text>
+		</Macroline>
+		<Macroline index="21" delay="0.02">
+			<text>Clear</text>
+		</Macroline>
+		<Macroline index="25" delay="0.02">
+			<text>Group 4</text>
+		</Macroline>
+	</Macro>
+</MA>

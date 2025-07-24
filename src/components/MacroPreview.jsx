@@ -70,29 +70,23 @@ function MacroPreview({ macro, macroName }) {
       <div className="bg-gray-800 border border-gray-600 rounded-lg overflow-hidden">
         {/* Header da tabela */}
         <div className="bg-black border-b-2 border-yellow-500 border-t-2">
-          <div className="grid grid-cols-12 text-white font-bold text-sm">
-            <div className="col-span-2 p-2 text-center border-r border-gray-600">No.</div>
-            <div className="col-span-10 p-2">CMD</div>
+          <div className="grid grid-cols-12 text-white font-bold text-xs">
+            <div className="col-span-2 py-1 px-2 text-center border-r border-gray-600">No.</div>
+            <div className="col-span-10 py-1 px-2">CMD</div>
           </div>
         </div>
         
         {/* Linhas dos comandos */}
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto">
           {macro.split('\n').filter(line => line.trim() !== '').map((line, index) => (
             <div 
               key={index} 
-              className={`grid grid-cols-12 border-b border-gray-600 hover:bg-gray-700 ${
-                index === 0 ? 'bg-white bg-opacity-10' : ''
-              }`}
+              className="grid grid-cols-12 border-b border-gray-600 hover:bg-gray-700"
             >
-              <div className={`col-span-2 p-2 text-center border-r border-gray-600 ${
-                index === 0 ? 'bg-white text-black font-bold' : 'text-white'
-              }`}>
+              <div className="col-span-2 py-1 px-2 text-center border-r border-gray-600 text-white text-xs">
                 {index + 1}
               </div>
-              <div className={`col-span-10 p-2 font-mono text-sm ${
-                index === 0 ? 'bg-green-400 text-black' : 'text-green-400'
-              }`}>
+              <div className="col-span-10 py-1 px-2 font-mono text-xs text-green-400">
                 {line}
               </div>
             </div>

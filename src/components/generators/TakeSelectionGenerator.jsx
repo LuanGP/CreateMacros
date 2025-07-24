@@ -24,6 +24,11 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const generateTakeSelectionMacro = (groupsData) => {
     let macro = 'Clear\nClear\nClear\n'
 
+    // Coletar todos os números de efeitos
+    const allEffectNumbers = groupsData.flatMap(group => 
+      group.effects.map(effect => effect.effectNumber)
+    ).sort((a, b) => a - b)
+
     groupsData.forEach((group, index) => {
       if (index > 0) {
         macro += 'Clear\n'
@@ -40,6 +45,12 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
         macro += `Store Effect ${effect.effectNumber}.* /o\n`
       })
     })
+
+    // Adicionar RemoveIndividuals no final
+    if (allEffectNumbers.length > 0) {
+      const effectList = allEffectNumbers.join(' + ')
+      macro += `RemoveIndividuals effect ${effectList} /nc\n`
+    }
 
     return macro
   }

@@ -5,7 +5,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const [groups, setGroups] = useState([
     {
       id: 1,
-      groupNumber: 1,
+      groupValue: 1,
       effects: [
         { id: 1, effectNumber: 1 }
       ]
@@ -29,7 +29,12 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
         macro += 'Clear\n'
       }
       
-      macro += `Group ${group.groupNumber}\n`
+      // Verifica se é número ou string
+      if (isNumeric(group.groupValue)) {
+        macro += `Group ${group.groupValue}\n`
+      } else {
+        macro += `Group "${group.groupValue}"\n`
+      }
       
       group.effects.forEach((effect) => {
         macro += `Store Effect ${effect.effectNumber}.* /o\n`
@@ -42,7 +47,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const addGroup = () => {
     const newGroup = {
       id: nextGroupId,
-      groupNumber: nextGroupId,
+      groupValue: nextGroupId,
       effects: [
         { id: nextEffectId, effectNumber: 1 }
       ]
@@ -60,6 +65,10 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     setGroups(groups.map(group => 
       group.id === groupId ? { ...group, [field]: value } : group
     ))
+  }
+
+  const isNumeric = (value) => {
+    return !isNaN(value) && !isNaN(parseFloat(value))
   }
 
   const addEffect = (groupId) => {
@@ -139,12 +148,11 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">Grupo</span>
                 <input
-                  type="number"
-                  value={group.groupNumber}
-                  onChange={(e) => updateGroup(group.id, 'groupNumber', parseInt(e.target.value) || 1)}
-                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Nº"
-                  min="1"
+                  type="text"
+                  value={group.groupValue}
+                  onChange={(e) => updateGroup(group.id, 'groupValue', e.target.value)}
+                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Número ou nome"
                 />
                 <div className="flex gap-1">
                   <button

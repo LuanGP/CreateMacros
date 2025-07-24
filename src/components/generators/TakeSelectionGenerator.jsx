@@ -45,11 +45,18 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }
 
   const addGroup = () => {
+    // Encontrar o próximo número de efeito disponível
+    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    let nextAvailableNumber = 1
+    while (allEffectNumbers.includes(nextAvailableNumber)) {
+      nextAvailableNumber++
+    }
+    
     const newGroup = {
       id: nextGroupId,
       groupValue: nextGroupId,
       effects: [
-        { id: nextEffectId, effectNumber: 1 }
+        { id: nextEffectId, effectNumber: nextAvailableNumber }
       ]
     }
     setGroups([...groups, newGroup])

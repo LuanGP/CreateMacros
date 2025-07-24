@@ -90,11 +90,17 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }
 
   const isEffectNumberAvailable = (effectNumber, currentGroupId, currentEffectId) => {
+    // Se o valor não for um número válido, não mostrar erro (permitir digitação)
+    const numValue = parseInt(effectNumber)
+    if (isNaN(numValue) || numValue <= 0) {
+      return true
+    }
+    
     return !groups.some(group => 
       group.id !== currentGroupId && 
       group.effects.some(effect => 
         effect.id !== currentEffectId && 
-        effect.effectNumber === effectNumber
+        effect.effectNumber === numValue
       )
     )
   }
@@ -133,13 +139,35 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const updateEffect = (groupId, effectId, field, value) => {
     // Se estiver atualizando o número do efeito, verificar se já existe em outro grupo
     if (field === 'effectNumber') {
+      // Só validar se o valor for um número válido e maior que 0
+      const numValue = parseInt(value)
+      if (isNaN(numValue) || numValue <= 0) {
+        // Permitir input parcial (como "1" quando quer digitar "11")
+        setGroups(groups.map(group => 
+          group.id === groupId 
+            ? {
+                ...group,
+                effects: group.effects.map(effect => 
+                  effect.id === effectId 
+                    ? { ...effect, [field]: value }
+                    : effect
+                )
+              }
+            : group
+        ))
+        return
+      }
+      
       const isDuplicate = groups.some(group => 
         group.id !== groupId && 
-        group.effects.some(effect => effect.effectNumber === value)
+        group.effects.some(effect => 
+          effect.id !== effectId && 
+          effect.effectNumber === numValue
+        )
       )
       
       if (isDuplicate) {
-        alert(`Efeito ${value} já está sendo usado em outro grupo!`)
+        alert(`Efeito ${numValue} já está sendo usado em outro grupo!`)
         return
       }
     }

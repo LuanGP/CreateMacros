@@ -22,16 +22,18 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }, [groups, onMacroGenerated])
 
   const generateTakeSelectionMacro = (groupsData) => {
-    let macro = 'Clear\n'
+    let macro = 'Clear\nClear\nClear\n'
 
-    groupsData.forEach((group) => {
+    groupsData.forEach((group, index) => {
+      if (index > 0) {
+        macro += 'Clear\n'
+      }
+      
       macro += `Group ${group.groupNumber}\n`
       
       group.effects.forEach((effect) => {
         macro += `Store Effect ${effect.effectNumber}.* /o\n`
       })
-      
-      macro += '\n'
     })
 
     return macro

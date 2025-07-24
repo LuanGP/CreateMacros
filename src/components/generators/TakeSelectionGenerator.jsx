@@ -5,10 +5,9 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const [groups, setGroups] = useState([
     {
       id: 1,
-      name: 'Grupo 1',
       groupNumber: 1,
       effects: [
-        { id: 1, name: 'Efeito 1', effectNumber: 1 }
+        { id: 1, effectNumber: 1 }
       ]
     }
   ])
@@ -41,10 +40,9 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const addGroup = () => {
     const newGroup = {
       id: nextGroupId,
-      name: `Grupo ${nextGroupId}`,
       groupNumber: nextGroupId,
       effects: [
-        { id: nextEffectId, name: `Efeito 1`, effectNumber: 1 }
+        { id: nextEffectId, effectNumber: 1 }
       ]
     }
     setGroups([...groups, newGroup])
@@ -54,12 +52,6 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
 
   const removeGroup = (groupId) => {
     setGroups(groups.filter(group => group.id !== groupId))
-  }
-
-  const updateGroupName = (groupId, newName) => {
-    setGroups(groups.map(group => 
-      group.id === groupId ? { ...group, name: newName } : group
-    ))
   }
 
   const updateGroup = (groupId, field, value) => {
@@ -74,7 +66,6 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     
     const newEffect = {
       id: nextEffectId,
-      name: `Efeito ${nextEffectId}`,
       effectNumber: effectNumber
     }
     
@@ -144,13 +135,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
           <div key={group.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={group.name}
-                  onChange={(e) => updateGroupName(group.id, e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Nome do grupo"
-                />
+                <span className="text-sm font-medium text-gray-700">Grupo</span>
                 <input
                   type="number"
                   value={group.groupNumber}
@@ -197,13 +182,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
             <div className="space-y-2">
               {group.effects.map((effect) => (
                 <div key={effect.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <input
-                    type="text"
-                    value={effect.name}
-                    onChange={(e) => updateEffect(group.id, effect.id, 'name', e.target.value)}
-                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Nome do efeito"
-                  />
+                  <span className="text-sm font-medium text-gray-700">Efeito</span>
                   <input
                     type="number"
                     value={effect.effectNumber}

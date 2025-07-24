@@ -1,19 +1,7 @@
 import React from 'react'
-import { Copy, Check, Download } from 'lucide-react'
-import { useState } from 'react'
+import { Download } from 'lucide-react'
 
 function MacroPreview({ macro, macroName }) {
-  const [copied, setCopied] = useState(false)
-
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(macro)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Erro ao copiar: ', err)
-    }
-  }
 
   const generateXML = () => {
     if (!macro) return ''
@@ -68,43 +56,52 @@ function MacroPreview({ macro, macroName }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">Código da Macro</h3>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={downloadXML}
-            className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Download XML
-          </button>
-          <button
-            onClick={copyToClipboard}
-            className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-green-600" />
-                Copiado!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                Copiar
-              </>
-            )}
-          </button>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-medium text-gray-900">Console da Macro</h3>
+        <button
+          onClick={downloadXML}
+          className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Download XML
+        </button>
+      </div>
+      
+      <div className="bg-gray-800 border border-gray-600 rounded-lg overflow-hidden">
+        {/* Header da tabela */}
+        <div className="bg-black border-b-2 border-yellow-500 border-t-2">
+          <div className="grid grid-cols-12 text-white font-bold text-sm">
+            <div className="col-span-2 p-2 text-center border-r border-gray-600">No.</div>
+            <div className="col-span-10 p-2">CMD</div>
+          </div>
+        </div>
+        
+        {/* Linhas dos comandos */}
+        <div className="max-h-96 overflow-y-auto">
+          {macro.split('\n').filter(line => line.trim() !== '').map((line, index) => (
+            <div 
+              key={index} 
+              className={`grid grid-cols-12 border-b border-gray-600 hover:bg-gray-700 ${
+                index === 0 ? 'bg-white bg-opacity-10' : ''
+              }`}
+            >
+              <div className={`col-span-2 p-2 text-center border-r border-gray-600 ${
+                index === 0 ? 'bg-white text-black font-bold' : 'text-white'
+              }`}>
+                {index + 1}
+              </div>
+              <div className={`col-span-10 p-2 font-mono text-sm ${
+                index === 0 ? 'bg-green-400 text-black' : 'text-green-400'
+              }`}>
+                {line}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       
-      <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-        <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">
-          {macro}
-        </pre>
-      </div>
-      
       <div className="text-xs text-gray-500">
-        <p>💡 Dica: Use "Download XML" para baixar o arquivo pronto para importar no gMA2, ou "Copiar" para colar no editor</p>
+        <p>💡 Dica: Use "Download XML" para baixar o arquivo pronto para importar no gMA2</p>
       </div>
     </div>
   )

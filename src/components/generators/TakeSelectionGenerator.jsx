@@ -6,8 +6,9 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     {
       id: 1,
       name: 'Grupo 1',
+      groupNumber: 1,
       effects: [
-        { id: 1, name: 'Efeito 1', type: 'dim' }
+        { id: 1, name: 'Efeito 1', effectNumber: 1 }
       ]
     }
   ])
@@ -22,24 +23,18 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }, [groups, onMacroGenerated])
 
   const generateTakeSelectionMacro = (groupsData) => {
-    let macro = 'Take Selection\n'
-    macro += 'SetUserVar $selection = "Selection"\n\n'
+    let macro = 'Clear\n'
 
-    groupsData.forEach((group, groupIndex) => {
-      macro += `Group ${groupIndex + 1}\n`
-      macro += `Name "${group.name}"\n`
+    groupsData.forEach((group) => {
+      macro += `Group ${group.groupNumber}\n`
       
-      group.effects.forEach((effect, effectIndex) => {
-        macro += `Effect ${effectIndex + 1}\n`
-        macro += `Name "${effect.name}"\n`
-        macro += `Type ${effect.type}\n`
-        macro += `End\n`
+      group.effects.forEach((effect) => {
+        macro += `Store Effect ${effect.effectNumber}.* /o\n`
       })
       
-      macro += 'End\n\n'
+      macro += '\n'
     })
 
-    macro += 'End'
     return macro
   }
 
@@ -47,8 +42,9 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     const newGroup = {
       id: nextGroupId,
       name: `Grupo ${nextGroupId}`,
+      groupNumber: nextGroupId,
       effects: [
-        { id: nextEffectId, name: `Efeito 1`, type: 'dim' }
+        { id: nextEffectId, name: `Efeito 1`, effectNumber: 1 }
       ]
     }
     setGroups([...groups, newGroup])
@@ -66,11 +62,20 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     ))
   }
 
+  const updateGroup = (groupId, field, value) => {
+    setGroups(groups.map(group => 
+      group.id === groupId ? { ...group, [field]: value } : group
+    ))
+  }
+
   const addEffect = (groupId) => {
+    const group = groups.find(g => g.id === groupId)
+    const effectNumber = group.effects.length + 1
+    
     const newEffect = {
       id: nextEffectId,
       name: `Efeito ${nextEffectId}`,
-      type: 'dim'
+      effectNumber: effectNumber
     }
     
     setGroups(groups.map(group => 
@@ -144,6 +149,15 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                   value={group.name}
                   onChange={(e) => updateGroupName(group.id, e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Nome do grupo"
+                />
+                <input
+                  type="number"
+                  value={group.groupNumber}
+                  onChange={(e) => updateGroup(group.id, 'groupNumber', parseInt(e.target.value) || 1)}
+                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Nº"
+                  min="1"
                 />
                 <div className="flex gap-1">
                   <button
@@ -190,17 +204,14 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Nome do efeito"
                   />
-                  <select
-                    value={effect.type}
-                    onChange={(e) => updateEffect(group.id, effect.id, 'type', e.target.value)}
-                    className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  >
-                    <option value="dim">Dim</option>
-                    <option value="color">Color</option>
-                    <option value="position">Position</option>
-                    <option value="gobo">Gobo</option>
-                    <option value="beam">Beam</option>
-                  </select>
+                  <input
+                    type="number"
+                    value={effect.effectNumber}
+                    onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', parseInt(e.target.value) || 1)}
+                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Nº"
+                    min="1"
+                  />
                   <button
                     onClick={() => removeEffect(group.id, effect.id)}
                     className="p-1 text-red-600 hover:text-red-700 transition-colors"

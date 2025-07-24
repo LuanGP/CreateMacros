@@ -14,6 +14,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
 
   const [nextGroupId, setNextGroupId] = useState(2)
   const [nextEffectId, setNextEffectId] = useState(2)
+  const [invalidEffects, setInvalidEffects] = useState({})
 
   // Gerar macro sempre que os dados mudarem
   useEffect(() => {
@@ -137,41 +138,6 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }
 
   const updateEffect = (groupId, effectId, field, value) => {
-    // Se estiver atualizando o número do efeito, verificar se já existe em outro grupo
-    if (field === 'effectNumber') {
-      // Só validar se o valor for um número válido e maior que 0
-      const numValue = parseInt(value)
-      if (isNaN(numValue) || numValue <= 0) {
-        // Permitir input parcial (como "1" quando quer digitar "11")
-        setGroups(groups.map(group => 
-          group.id === groupId 
-            ? {
-                ...group,
-                effects: group.effects.map(effect => 
-                  effect.id === effectId 
-                    ? { ...effect, [field]: value }
-                    : effect
-                )
-              }
-            : group
-        ))
-        return
-      }
-      
-      const isDuplicate = groups.some(group => 
-        group.id !== groupId && 
-        group.effects.some(effect => 
-          effect.id !== effectId && 
-          effect.effectNumber === numValue
-        )
-      )
-      
-      if (isDuplicate) {
-        alert(`Efeito ${numValue} já está sendo usado em outro grupo!`)
-        return
-      }
-    }
-    
     setGroups(groups.map(group => 
       group.id === groupId 
         ? {
@@ -184,6 +150,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
           }
         : group
     ))
+    // Limpa o erro visual ao digitar
+    setInvalidEffects(prev => ({ ...prev, [effectId]: false }))
   }
 
   const moveGroup = (groupId, direction) => {
@@ -271,16 +239,25 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                   <input
                     type="number"
                     value={effect.effectNumber}
-                    onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', parseInt(e.target.value) || 1)}
+                    onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
+                    onBlur={() => {
+                      const numValue = parseInt(effect.effectNumber)
+                      const isDuplicate = !isNaN(numValue) && numValue > 0 && groups.some(g =>
+                        g.id !== group.id &&
+                        g.effects.some(e => e.effectNumber === numValue)
+                      )
+                      setInvalidEffects(prev => ({
+                        ...prev,
+                        [effect.id]: isDuplicate
+                      }))
+                    }}
                     className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
-                      isEffectNumberAvailable(effect.effectNumber, group.id, effect.id) 
-                        ? 'border-gray-300' 
-                        : 'border-red-500 bg-red-50'
+                      invalidEffects[effect.id] ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                     placeholder="Nº"
                     min="1"
                   />
-                  {!isEffectNumberAvailable(effect.effectNumber, group.id, effect.id) && (
+                  {invalidEffects[effect.id] && (
                     <span className="text-xs text-red-600">Já usado</span>
                   )}
                   <button

@@ -136,10 +136,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   const addEffect = (groupId) => {
     const group = groups.find(g => g.id === groupId)
     
-    // Encontrar o próximo número de efeito disponível
-    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    // Encontrar o próximo número de efeito disponível (que não seja usado por efeitos não-complexos)
+    const nonComplexEffectNumbers = groups.flatMap(g => 
+      g.effects.filter(e => !e.isComplex).map(e => e.effectNumber)
+    )
     let nextAvailableNumber = 1
-    while (allEffectNumbers.includes(nextAvailableNumber)) {
+    while (nonComplexEffectNumbers.includes(nextAvailableNumber)) {
       nextAvailableNumber++
     }
     
@@ -464,9 +466,15 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                             // Verificar efeitos NÃO-complexos no mesmo grupo
                             group.effects.some(e => e.id !== effect.id && e.effectNumber === numValue && !e.isComplex)
                           )
+                          
+                          // Verificar se este efeito NÃO-complexo conflita com efeitos complexos existentes
+                          const hasComplexConflict = !effect.isComplex && groups.some(g =>
+                            g.effects.some(e => e.effectNumber === numValue && e.isComplex)
+                          )
+                          
                           setInvalidEffects(prev => ({
                             ...prev,
-                            [effect.id]: isDuplicate
+                            [effect.id]: isDuplicate || hasComplexConflict
                           }))
                         }}
                         className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${

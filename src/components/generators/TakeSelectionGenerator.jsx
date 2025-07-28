@@ -2,18 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 
 function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
-  const [groups, setGroups] = useState([
-    {
-      id: 1,
-      groupValue: 1,
-      effects: [
-        { id: 1, effectNumber: 1, isComplex: false, effectLines: [] }
-      ]
-    }
-  ])
+  const [groups, setGroups] = useState([])
 
-  const [nextGroupId, setNextGroupId] = useState(2)
-  const [nextEffectId, setNextEffectId] = useState(2)
+  const [nextGroupId, setNextGroupId] = useState(1)
+  const [nextEffectId, setNextEffectId] = useState(1)
   const [nextEffectLineId, setNextEffectLineId] = useState(1)
   const [invalidEffects, setInvalidEffects] = useState({})
   const [invalidLines, setInvalidLines] = useState({})

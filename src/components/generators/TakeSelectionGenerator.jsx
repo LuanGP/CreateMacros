@@ -31,13 +31,14 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   useEffect(() => {
     const macro = generateTakeSelectionMacro(groups)
     onMacroGenerated(macro)
-    
-    // Analisar duplicatas no macro gerado
-    const foundDuplicates = analyzeMacroForDuplicates(macro)
-    console.log('Macro gerado:', macro)
-    console.log('Duplicatas encontradas:', foundDuplicates)
-    setDuplicates(foundDuplicates)
   }, [groups, onMacroGenerated])
+
+  // Verificar duplicatas sempre que o macro for alterado
+  useEffect(() => {
+    const macro = generateTakeSelectionMacro(groups)
+    const foundDuplicates = analyzeMacroForDuplicates(macro)
+    setDuplicates(foundDuplicates)
+  }, [groups])
 
 
 
@@ -91,8 +92,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
             } else {
               duplicates[`effect-${lastEffect.id}`] = true
             }
-            
-            console.log(`Duplicata encontrada: ${line} -> efeito ID: ${lastEffect.id}`)
           }
         }
       }

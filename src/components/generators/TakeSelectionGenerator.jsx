@@ -33,27 +33,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     onMacroGenerated(macro)
   }, [groups, onMacroGenerated])
 
-  // Verificar duplicatas sempre que o macro for alterado (com debounce)
-  useEffect(() => {
-    console.log('🔄 Groups mudou, executando análise de duplicatas...')
-    console.log('📊 Groups atual:', groups)
-    
-    // Limpar duplicatas imediatamente
-    setDuplicates({})
-    
-    const timeoutId = setTimeout(() => {
-      // Sempre gerar macro fresco e analisar
-      const macro = generateTakeSelectionMacro(groups)
-      console.log('🆕 Macro gerado:', macro)
-      
-      const foundDuplicates = analyzeMacroForDuplicates(macro, groups)
-      console.log('🆕 Duplicatas encontradas:', foundDuplicates)
-      
-      setDuplicates(foundDuplicates)
-    }, 50) // Reduzido ainda mais para 50ms
-    
-    return () => clearTimeout(timeoutId)
-  }, [groups]) // Dependência direta em groups, sem useCallback
+  // Removido useEffect separado - agora a verificação está dentro de generateTakeSelectionMacro
 
 
 
@@ -181,6 +161,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
       const effectList = allEffectNumbers.join(' + ')
       macro += `RemoveIndividuals effect ${effectList} /nc\n`
     }
+
+    // Verificar duplicatas imediatamente após gerar o macro
+    console.log('🔄 Macro gerado, verificando duplicatas...')
+    const foundDuplicates = analyzeMacroForDuplicates(macro, groupsData)
+    setDuplicates(foundDuplicates)
+    console.log('✅ Duplicatas definidas:', foundDuplicates)
 
     return macro
   }

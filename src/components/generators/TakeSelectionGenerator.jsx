@@ -58,26 +58,37 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
           
-          // Encontrar o efeito correspondente à última ocorrência
-          let effectFound = false
+          // Encontrar o efeito correspondente à última ocorrência (maior ID = mais recente)
+          const matchingEffects = []
           groups.forEach(group => {
             group.effects.forEach(effect => {
-              if (effect.effectNumber === effectNumber && !effectFound) {
+              if (effect.effectNumber === effectNumber) {
                 if (lineNumber) {
                   // É uma linha específica de efeito complexo
                   const line = effect.effectLines?.find(l => l.lineNumber === lineNumber)
                   if (line) {
-                    duplicates[`line-${line.id}`] = true
-                    effectFound = true
+                    matchingEffects.push({ type: 'line', id: line.id, effectId: effect.id })
                   }
                 } else {
                   // É um efeito não-complexo
-                  duplicates[`effect-${effect.id}`] = true
-                  effectFound = true
+                  matchingEffects.push({ type: 'effect', id: effect.id })
                 }
               }
             })
           })
+          
+          // Marcar o efeito com maior ID (mais recente)
+          if (matchingEffects.length > 0) {
+            const lastEffect = matchingEffects.reduce((prev, current) => 
+              current.id > prev.id ? current : prev
+            )
+            
+            if (lastEffect.type === 'line') {
+              duplicates[`line-${lastEffect.id}`] = true
+            } else {
+              duplicates[`effect-${lastEffect.id}`] = true
+            }
+          }
         }
       } else {
         // Primeira ocorrência, armazenar o índice

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash2, MoveUp, MoveDown } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 function TakeSelectionGenerator({ onMacroGenerated }) {
   const [groups, setGroups] = useState([
@@ -271,22 +271,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     )
   }
 
-  const moveGroup = (groupId, direction) => {
-    const currentIndex = groups.findIndex(g => g.id === groupId)
-    if (direction === 'up' && currentIndex > 0) {
-      const newGroups = [...groups]
-      const temp = newGroups[currentIndex]
-      newGroups[currentIndex] = newGroups[currentIndex - 1]
-      newGroups[currentIndex - 1] = temp
-      setGroups(newGroups)
-    } else if (direction === 'down' && currentIndex < groups.length - 1) {
-      const newGroups = [...groups]
-      const temp = newGroups[currentIndex]
-      newGroups[currentIndex] = newGroups[currentIndex + 1]
-      newGroups[currentIndex + 1] = temp
-      setGroups(newGroups)
-    }
-  }
+
 
   return (
     <div className="space-y-6">
@@ -320,22 +305,6 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                 >
                   {collapsedGroups[group.id] ? 'Expandir' : 'Minimizar'}
                 </button>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => moveGroup(group.id, 'up')}
-                    disabled={groupIndex === 0}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                  >
-                    <MoveUp className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => moveGroup(group.id, 'down')}
-                    disabled={groupIndex === groups.length - 1}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                  >
-                    <MoveDown className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
               
               <div className="flex items-center gap-2">

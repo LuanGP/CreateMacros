@@ -41,7 +41,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   }, [groups])
 
   useEffect(() => {
-    const timeoutId = setTimeout(debouncedAnalyzeDuplicates, 300)
+    const timeoutId = setTimeout(debouncedAnalyzeDuplicates, 100) // Reduzido para 100ms
     return () => clearTimeout(timeoutId)
   }, [debouncedAnalyzeDuplicates])
 
@@ -52,20 +52,30 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
     const duplicates = {}
     
+    // Debug: Log das linhas encontradas
+    console.log('🔍 Analisando macro:', macroText)
+    console.log('📝 Linhas Store Effect encontradas:', storeEffectLines)
+    
     // Contar ocorrências de cada linha
     const lineCounts = {}
     storeEffectLines.forEach(line => {
       lineCounts[line] = (lineCounts[line] || 0) + 1
     })
     
+    console.log('📊 Contagem de linhas:', lineCounts)
+    
     // Para cada linha que aparece mais de uma vez, marcar TODAS as ocorrências
     Object.keys(lineCounts).forEach(line => {
       if (lineCounts[line] > 1) {
+        console.log('🚨 Duplicata detectada:', line, 'ocorrências:', lineCounts[line])
+        
         // Regex melhorado para capturar mais variações de Store Effect
         const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o?/)
         if (effectMatch) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
+          
+          console.log('🔢 Efeito extraído:', effectNumber, 'Linha:', lineNumber)
           
           // Encontrar todos os efeitos correspondentes
           const matchingEffects = []
@@ -86,6 +96,8 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
             })
           })
           
+          console.log('🎯 Efeitos correspondentes encontrados:', matchingEffects)
+          
           // Marcar TODOS os efeitos correspondentes como duplicatas
           matchingEffects.forEach(match => {
             if (match.type === 'line') {
@@ -98,6 +110,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
       }
     })
     
+    console.log('✅ Duplicatas finais:', duplicates)
     return duplicates
   }
 

@@ -7,6 +7,7 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
   const [selectedGenerator, setSelectedGenerator] = useState('take-selection')
   const [isExpanded, setIsExpanded] = useState(true)
   const [showUploader, setShowUploader] = useState(false)
+  const [loadedGroups, setLoadedGroups] = useState(null)
 
   const generators = [
     {
@@ -102,14 +103,18 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
         <div className={`p-4 ${!isExpanded ? 'hidden' : ''}`}>
           {showUploader ? (
             <XmlUploader 
-              onXmlLoaded={(macroContent) => {
-                onMacroGenerated(macroContent)
+              onXmlLoaded={(parsedData) => {
+                onMacroGenerated(parsedData.macroText)
+                setLoadedGroups(parsedData.groups)
                 setShowUploader(false) // Volta para o modo de criar nova macro
               }} 
             />
           ) : (
             selectedGenerator === 'take-selection' && (
-              <TakeSelectionGenerator onMacroGenerated={onMacroGenerated} />
+              <TakeSelectionGenerator 
+                onMacroGenerated={onMacroGenerated} 
+                initialGroups={loadedGroups}
+              />
             )
           )}
         </div>

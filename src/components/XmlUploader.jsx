@@ -31,7 +31,7 @@ function XmlUploader({ onXmlLoaded }) {
     }
   }
 
-  const parseXmlToMacro = (xmlContent) => {
+  const parseXmlToStructure = (xmlContent) => {
     try {
       // Extrair as linhas da macro do XML
       const macroLines = []
@@ -46,7 +46,99 @@ function XmlUploader({ onXmlLoaded }) {
         }
       }
 
-      return macroLines.join('\n')
+      // Reconstruir a estrutura de grupos e efeitos
+      const groups = []
+      let currentGroup = null
+      let currentEffect = null
+      let groupId = 1
+      let effectId = 1
+
+      for (const line of macroLines) {
+        if (line === 'Clear' && currentGroup) {
+          // Finalizar grupo atual
+          if (currentGroup) {
+            groups.push(currentGroup)
+            currentGroup = null
+          }
+        } else if (line.startsWith('Group ')) {
+          // Novo grupo
+          if (currentGroup) {
+            groups.push(currentGroup)
+          }
+          
+          const groupValue = line.replace('Group ', '').replace(/"/g, '')
+          currentGroup = {
+            id: groupId++,
+            groupValue: groupValue,
+            effects: []
+          }
+        } else if (line.startsWith('Store Effect ')) {
+          // Novo efeito
+          if (!currentGroup) {
+            // Se não há grupo, criar um padrão
+            currentGroup = {
+              id: groupId++,
+              groupValue: '1',
+              effects: []
+            }
+          }
+
+          const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?\.\* \/o/)
+          if (effectMatch) {
+            const effectNumber = parseInt(effectMatch[1])
+            const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
+            
+            // Verificar se já existe um efeito com este número
+            let existingEffect = currentGroup.effects.find(e => e.effectNumber === effectNumber)
+            
+            if (!existingEffect) {
+              // Criar novo efeito
+              existingEffect = {
+                id: effectId++,
+                effectNumber: effectNumber,
+                isComplex: false,
+                effectLines: []
+              }
+              currentGroup.effects.push(existingEffect)
+            }
+            
+            // Se tem lineNumber, é um efeito complexo
+            if (lineNumber) {
+              existingEffect.isComplex = true
+              if (!existingEffect.effectLines.find(l => l.lineNumber === lineNumber)) {
+                existingEffect.effectLines.push({
+                  id: effectId++,
+                  lineNumber: lineNumber
+                })
+              }
+            }
+          }
+        }
+      }
+
+      // Adicionar o último grupo se existir
+      if (currentGroup) {
+        groups.push(currentGroup)
+      }
+
+      // Se não há grupos, criar um grupo padrão
+      if (groups.length === 0) {
+        groups.push({
+          id: 1,
+          groupValue: '1',
+          effects: [{
+            id: 1,
+            effectNumber: 1,
+            isComplex: false,
+            effectLines: []
+          }]
+        })
+      }
+
+      return {
+        macroText: macroLines.join('\n'),
+        groups: groups
+      }
     } catch (error) {
       console.error('Erro ao processar XML:', error)
       return null
@@ -61,11 +153,11 @@ function XmlUploader({ onXmlLoaded }) {
       const validation = validateXml(xmlContent)
       
       if (validation.isValid) {
-        const macroContent = parseXmlToMacro(xmlContent)
-        if (macroContent) {
+        const parsedData = parseXmlToStructure(xmlContent)
+        if (parsedData) {
           setUploadStatus('success')
           setErrorMessage('')
-          onXmlLoaded(macroContent)
+          onXmlLoaded(parsedData)
         } else {
           setUploadStatus('error')
           setErrorMessage('Erro ao processar o conteúdo do XML.')

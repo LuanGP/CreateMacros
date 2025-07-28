@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 
-function TakeSelectionGenerator({ onMacroGenerated }) {
+function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   const [groups, setGroups] = useState([
     {
       id: 1,
@@ -19,6 +19,18 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const [invalidLines, setInvalidLines] = useState({})
   const [collapsedEffects, setCollapsedEffects] = useState({})
   const [collapsedGroups, setCollapsedGroups] = useState({})
+
+  // Carregar dados iniciais se fornecidos
+  useEffect(() => {
+    if (initialGroups && initialGroups.length > 0) {
+      setGroups(initialGroups)
+      // Resetar os IDs para evitar conflitos
+      const maxGroupId = Math.max(...initialGroups.map(g => g.id))
+      const maxEffectId = Math.max(...initialGroups.flatMap(g => g.effects.map(e => e.id)))
+      setNextGroupId(maxGroupId + 1)
+      setNextEffectId(maxEffectId + 1)
+    }
+  }, [initialGroups])
 
   // Gerar macro sempre que os dados mudarem
   useEffect(() => {

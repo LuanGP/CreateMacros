@@ -16,6 +16,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const [nextEffectId, setNextEffectId] = useState(2)
   const [nextEffectLineId, setNextEffectLineId] = useState(1)
   const [invalidEffects, setInvalidEffects] = useState({})
+  const [invalidLines, setInvalidLines] = useState({})
 
   // Gerar macro sempre que os dados mudarem
   useEffect(() => {
@@ -213,6 +214,29 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
           }
         : group
     ))
+    // Limpa o erro visual ao digitar
+    setInvalidLines(prev => ({ ...prev, [lineId]: false }))
+  }
+
+  const isLineNumberAvailable = (lineNumber, groupId, effectId, currentLineId) => {
+    // Se o valor não for um número válido, não mostrar erro (permitir digitação)
+    const numValue = parseInt(lineNumber)
+    if (isNaN(numValue) || numValue <= 0) {
+      return true
+    }
+    
+    const group = groups.find(g => g.id === groupId)
+    const effect = group?.effects.find(e => e.id === effectId)
+    
+    if (!effect || !effect.effectLines) {
+      return true
+    }
+    
+    // Verificar duplicidade apenas dentro do mesmo efeito
+    return !effect.effectLines.some(line => 
+      line.id !== currentLineId && 
+      line.lineNumber === numValue
+    )
   }
 
   const moveGroup = (groupId, direction) => {
@@ -370,10 +394,25 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                               type="number"
                               value={line.lineNumber}
                               onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
-                              className="w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              onBlur={() => {
+                                const numValue = parseInt(line.lineNumber)
+                                const isDuplicate = !isNaN(numValue) && numValue > 0 && (effect.effectLines || []).some(l =>
+                                  l.id !== line.id && l.lineNumber === numValue
+                                )
+                                setInvalidLines(prev => ({
+                                  ...prev,
+                                  [line.id]: isDuplicate
+                                }))
+                              }}
+                              className={`w-16 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+                                invalidLines[line.id] ? 'border-red-500 bg-red-50' : 'border-blue-300'
+                              }`}
                               placeholder="Nº"
                               min="1"
                             />
+                            {invalidLines[line.id] && (
+                              <span className="text-xs text-red-600">Já usado</span>
+                            )}
                             <button
                               onClick={() => removeEffectLine(group.id, effect.id, line.id)}
                               className="p-1 text-red-500 hover:text-red-700 transition-colors"

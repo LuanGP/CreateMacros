@@ -7,13 +7,14 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
       id: 1,
       groupValue: 1,
       effects: [
-        { id: 1, effectNumber: 1, isComplex: false }
+        { id: 1, effectNumber: 1, isComplex: false, effectLines: [] }
       ]
     }
   ])
 
   const [nextGroupId, setNextGroupId] = useState(2)
   const [nextEffectId, setNextEffectId] = useState(2)
+  const [nextEffectLineId, setNextEffectLineId] = useState(1)
   const [invalidEffects, setInvalidEffects] = useState({})
 
   // Gerar macro sempre que os dados mudarem
@@ -68,7 +69,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
       id: nextGroupId,
       groupValue: nextGroupId,
       effects: [
-        { id: nextEffectId, effectNumber: nextAvailableNumber, isComplex: false }
+        { id: nextEffectId, effectNumber: nextAvailableNumber, isComplex: false, effectLines: [] }
       ]
     }
     setGroups([...groups, newGroup])
@@ -119,7 +120,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     const newEffect = {
       id: nextEffectId,
       effectNumber: nextAvailableNumber,
-      isComplex: false
+      isComplex: false,
+      effectLines: []
     }
     
     setGroups(groups.map(group => 
@@ -153,6 +155,64 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     ))
     // Limpa o erro visual ao digitar
     setInvalidEffects(prev => ({ ...prev, [effectId]: false }))
+  }
+
+  const addEffectLine = (groupId, effectId) => {
+    const newLine = {
+      id: nextEffectLineId,
+      lineNumber: 1
+    }
+    
+    setGroups(groups.map(group => 
+      group.id === groupId 
+        ? {
+            ...group,
+            effects: group.effects.map(effect => 
+              effect.id === effectId 
+                ? { ...effect, effectLines: [...(effect.effectLines || []), newLine] }
+                : effect
+            )
+          }
+        : group
+    ))
+    setNextEffectLineId(nextEffectLineId + 1)
+  }
+
+  const removeEffectLine = (groupId, effectId, lineId) => {
+    setGroups(groups.map(group => 
+      group.id === groupId 
+        ? {
+            ...group,
+            effects: group.effects.map(effect => 
+              effect.id === effectId 
+                ? { ...effect, effectLines: (effect.effectLines || []).filter(line => line.id !== lineId) }
+                : effect
+            )
+          }
+        : group
+    ))
+  }
+
+  const updateEffectLine = (groupId, effectId, lineId, field, value) => {
+    setGroups(groups.map(group => 
+      group.id === groupId 
+        ? {
+            ...group,
+            effects: group.effects.map(effect => 
+              effect.id === effectId 
+                ? {
+                    ...effect,
+                    effectLines: (effect.effectLines || []).map(line => 
+                      line.id === lineId 
+                        ? { ...line, [field]: value }
+                        : line
+                    )
+                  }
+                : effect
+            )
+          }
+        : group
+    ))
   }
 
   const moveGroup = (groupId, direction) => {
@@ -284,6 +344,50 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
+                  
+                  {/* Cascata para efeito complexo */}
+                  {effect.isComplex && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="text-sm font-medium text-blue-900">Linhas do Efeito</h5>
+                        <button
+                          onClick={() => addEffectLine(group.id, effect.id)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Adicionar Linha
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {(effect.effectLines || []).map((line, lineIndex) => (
+                          <div key={line.id} className="flex items-center gap-2">
+                            <span className="text-xs text-blue-700">Linha:</span>
+                            <input
+                              type="number"
+                              value={line.lineNumber}
+                              onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
+                              className="w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nº"
+                              min="1"
+                            />
+                            <button
+                              onClick={() => removeEffectLine(group.id, effect.id, line.id)}
+                              className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {(!effect.effectLines || effect.effectLines.length === 0) && (
+                          <p className="text-xs text-blue-600 italic">
+                            Nenhuma linha configurada. Adicione linhas para especificar quais linhas do efeito atualizar.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

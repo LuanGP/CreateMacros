@@ -257,17 +257,17 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
         .flatMap(e => e.effectLines.map(l => l.lineNumber))
     )
     
-    // Verificar se existe um efeito não-complexo com o mesmo número
+    // Verificar se existe um efeito NÃO-complexo com o mesmo número
     const effectNumber = effect.effectNumber
     const hasNonComplexEffect = groups.some(g =>
       g.effects.some(e => 
-        e.effectNumber === effectNumber && !e.isComplex
+        e.effectNumber === effectNumber && !e.isComplex && e.id !== effect.id
       )
     )
     
     let nextAvailableNumber = 1
     
-    // Se existe um efeito não-complexo com o mesmo número, não sugerir nenhuma linha
+    // Se existe um efeito NÃO-complexo com o mesmo número, não sugerir nenhuma linha
     if (hasNonComplexEffect) {
       nextAvailableNumber = 1 // Será rejeitado pela validação
     } else if (allLineNumbers.length === 0) {
@@ -548,10 +548,10 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                                     const numValue = parseInt(line.lineNumber)
                                     const effectNumber = effect.effectNumber
                                     
-                                    // Verificar se existe um efeito não-complexo com o mesmo número
+                                    // Verificar se existe um efeito NÃO-complexo com o mesmo número
                                     const hasNonComplexEffect = groups.some(g =>
                                       g.effects.some(e => 
-                                        e.effectNumber === effectNumber && !e.isComplex
+                                        e.effectNumber === effectNumber && !e.isComplex && e.id !== effect.id
                                       )
                                     )
                                     

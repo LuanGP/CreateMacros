@@ -105,6 +105,7 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
             <XmlUploader 
               onXmlLoaded={(parsedData) => {
                 onMacroGenerated(parsedData.macroText)
+                onMacroNameChange(parsedData.macroName)
                 setLoadedGroups(parsedData.groups)
                 setShowUploader(false) // Volta para o modo de criar nova macro
               }} 

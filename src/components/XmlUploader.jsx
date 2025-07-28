@@ -33,6 +33,10 @@ function XmlUploader({ onXmlLoaded }) {
 
   const parseXmlToStructure = (xmlContent) => {
     try {
+      // Extrair o nome da macro
+      const macroNameMatch = xmlContent.match(/<Macro[^>]*name="([^"]*)"[^>]*>/)
+      const macroName = macroNameMatch ? macroNameMatch[1] : 'TakeSelection'
+      
       // Extrair as linhas da macro do XML
       const macroLines = []
       const lines = xmlContent.split('\n')
@@ -140,6 +144,7 @@ function XmlUploader({ onXmlLoaded }) {
 
       return {
         macroText: macroLines.join('\n'),
+        macroName: macroName,
         groups: groups
       }
     } catch (error) {

@@ -53,7 +53,11 @@ function XmlUploader({ onXmlLoaded }) {
       let groupId = 1
       let effectId = 1
 
+      console.log('Macro lines:', macroLines) // Debug log
+      
       for (const line of macroLines) {
+        console.log('Processing line:', line) // Debug log
+        
         if (line === 'Clear' && currentGroup) {
           // Finalizar grupo atual
           if (currentGroup) {
@@ -83,10 +87,15 @@ function XmlUploader({ onXmlLoaded }) {
             }
           }
 
+          // Padrão para capturar Store Effect X.Y.* /o ou Store Effect X.* /o
           const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?\.\* \/o/)
+          console.log('Effect match for line:', line, effectMatch) // Debug log
+          
           if (effectMatch) {
             const effectNumber = parseInt(effectMatch[1])
             const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
+            
+            console.log('Parsed effect:', { effectNumber, lineNumber }) // Debug log
             
             // Verificar se já existe um efeito com este número
             let existingEffect = currentGroup.effects.find(e => e.effectNumber === effectNumber)
@@ -100,6 +109,7 @@ function XmlUploader({ onXmlLoaded }) {
                 effectLines: []
               }
               currentGroup.effects.push(existingEffect)
+              console.log('Created new effect:', existingEffect) // Debug log
             }
             
             // Se tem lineNumber, é um efeito complexo
@@ -110,6 +120,7 @@ function XmlUploader({ onXmlLoaded }) {
                   id: effectId++,
                   lineNumber: lineNumber
                 })
+                console.log('Added line to effect:', lineNumber) // Debug log
               }
             }
           }
@@ -154,6 +165,7 @@ function XmlUploader({ onXmlLoaded }) {
       
       if (validation.isValid) {
         const parsedData = parseXmlToStructure(xmlContent)
+        console.log('Parsed data:', parsedData) // Debug log
         if (parsedData) {
           setUploadStatus('success')
           setErrorMessage('')

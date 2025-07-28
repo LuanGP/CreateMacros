@@ -251,16 +251,31 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     const group = groups.find(g => g.id === groupId)
     const effect = group?.effects.find(e => e.id === effectId)
     
-    // Encontrar o próximo número de linha disponível
-    const existingLineNumbers = (effect?.effectLines || []).map(line => line.lineNumber)
+    // Encontrar o próximo número de linha disponível globalmente
+    const allLineNumbers = groups.flatMap(g => 
+      g.effects.filter(e => e.isComplex && e.effectLines)
+        .flatMap(e => e.effectLines.map(l => l.lineNumber))
+    )
+    
+    // Verificar se existe um efeito não-complexo com o mesmo número
+    const effectNumber = effect.effectNumber
+    const hasNonComplexEffect = groups.some(g =>
+      g.effects.some(e => 
+        e.effectNumber === effectNumber && !e.isComplex
+      )
+    )
+    
     let nextAvailableNumber = 1
     
-    // Se não há linhas, usar 1
-    if (existingLineNumbers.length === 0) {
+    // Se existe um efeito não-complexo com o mesmo número, não sugerir nenhuma linha
+    if (hasNonComplexEffect) {
+      nextAvailableNumber = 1 // Será rejeitado pela validação
+    } else if (allLineNumbers.length === 0) {
+      // Se não há linhas em nenhum efeito complexo, usar 1
       nextAvailableNumber = 1
     } else {
       // Encontrar o maior número e adicionar 1
-      const maxNumber = Math.max(...existingLineNumbers)
+      const maxNumber = Math.max(...allLineNumbers)
       nextAvailableNumber = maxNumber + 1
     }
     
@@ -531,9 +546,25 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                                   onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
                                   onBlur={() => {
                                     const numValue = parseInt(line.lineNumber)
-                                    const isDuplicate = !isNaN(numValue) && numValue > 0 && (effect.effectLines || []).some(l =>
-                                      l.id !== line.id && l.lineNumber === numValue
+                                    const effectNumber = effect.effectNumber
+                                    
+                                    // Verificar se existe um efeito não-complexo com o mesmo número
+                                    const hasNonComplexEffect = groups.some(g =>
+                                      g.effects.some(e => 
+                                        e.effectNumber === effectNumber && !e.isComplex
+                                      )
                                     )
+                                    
+                                    // Verificar se existe uma linha duplicada em outros efeitos complexos
+                                    const hasDuplicateLine = groups.some(g =>
+                                      g.effects.some(e => 
+                                        e.isComplex && e.effectLines && e.effectLines.some(l =>
+                                          l.id !== line.id && l.lineNumber === numValue
+                                        )
+                                      )
+                                    )
+                                    
+                                    const isDuplicate = !isNaN(numValue) && numValue > 0 && (hasNonComplexEffect || hasDuplicateLine)
                                     setInvalidLines(prev => ({
                                       ...prev,
                                       [line.id]: isDuplicate

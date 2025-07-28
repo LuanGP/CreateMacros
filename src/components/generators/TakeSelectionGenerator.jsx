@@ -7,7 +7,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
       id: 1,
       groupValue: 1,
       effects: [
-        { id: 1, effectNumber: 1 }
+        { id: 1, effectNumber: 1, isComplex: false }
       ]
     }
   ])
@@ -68,7 +68,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
       id: nextGroupId,
       groupValue: nextGroupId,
       effects: [
-        { id: nextEffectId, effectNumber: nextAvailableNumber }
+        { id: nextEffectId, effectNumber: nextAvailableNumber, isComplex: false }
       ]
     }
     setGroups([...groups, newGroup])
@@ -118,7 +118,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     
     const newEffect = {
       id: nextEffectId,
-      effectNumber: nextAvailableNumber
+      effectNumber: nextAvailableNumber,
+      isComplex: false
     }
     
     setGroups(groups.map(group => 
@@ -234,38 +235,55 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
 
             <div className="space-y-2">
               {group.effects.map((effect) => (
-                <div key={effect.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="text-sm font-medium text-gray-700">Efeito</span>
-                  <input
-                    type="number"
-                    value={effect.effectNumber}
-                    onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
-                    onBlur={() => {
-                      const numValue = parseInt(effect.effectNumber)
-                      const isDuplicate = !isNaN(numValue) && numValue > 0 && groups.some(g =>
-                        g.id !== group.id &&
-                        g.effects.some(e => e.effectNumber === numValue)
-                      )
-                      setInvalidEffects(prev => ({
-                        ...prev,
-                        [effect.id]: isDuplicate
-                      }))
-                    }}
-                    className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
-                      invalidEffects[effect.id] ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="Nº"
-                    min="1"
-                  />
-                  {invalidEffects[effect.id] && (
-                    <span className="text-xs text-red-600">Já usado</span>
-                  )}
-                  <button
-                    onClick={() => removeEffect(group.id, effect.id)}
-                    className="p-1 text-red-600 hover:text-red-700 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                <div key={effect.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Efeito</span>
+                    <input
+                      type="number"
+                      value={effect.effectNumber}
+                      onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
+                      onBlur={() => {
+                        const numValue = parseInt(effect.effectNumber)
+                        const isDuplicate = !isNaN(numValue) && numValue > 0 && groups.some(g =>
+                          g.id !== group.id &&
+                          g.effects.some(e => e.effectNumber === numValue)
+                        )
+                        setInvalidEffects(prev => ({
+                          ...prev,
+                          [effect.id]: isDuplicate
+                        }))
+                      }}
+                      className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                        invalidEffects[effect.id] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="Nº"
+                      min="1"
+                    />
+                    {invalidEffects[effect.id] && (
+                      <span className="text-xs text-red-600">Já usado</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={`complex-${effect.id}`}
+                        checked={effect.isComplex || false}
+                        onChange={(e) => updateEffect(group.id, effect.id, 'isComplex', e.target.checked)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <label htmlFor={`complex-${effect.id}`} className="text-sm text-gray-700">
+                        Efeito complexo
+                      </label>
+                    </div>
+                    <button
+                      onClick={() => removeEffect(group.id, effect.id)}
+                      className="p-1 text-red-600 hover:text-red-700 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

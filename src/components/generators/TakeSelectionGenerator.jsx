@@ -165,8 +165,14 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     // Encontrar o próximo número de linha disponível
     const existingLineNumbers = (effect?.effectLines || []).map(line => line.lineNumber)
     let nextAvailableNumber = 1
-    while (existingLineNumbers.includes(nextAvailableNumber)) {
-      nextAvailableNumber++
+    
+    // Se não há linhas, usar 1
+    if (existingLineNumbers.length === 0) {
+      nextAvailableNumber = 1
+    } else {
+      // Encontrar o maior número e adicionar 1
+      const maxNumber = Math.max(...existingLineNumbers)
+      nextAvailableNumber = maxNumber + 1
     }
     
     const newLine = {

@@ -155,6 +155,43 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     setNextEffectId(nextEffectId + 1)
   }
 
+  const addMultipleEffects = (groupId) => {
+    const group = groups.find(g => g.id === groupId)
+    
+    // Encontrar o próximo número de efeito disponível
+    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    let nextAvailableNumber = 1
+    while (allEffectNumbers.includes(nextAvailableNumber)) {
+      nextAvailableNumber++
+    }
+    
+    // Adicionar 5 efeitos de uma vez
+    const newEffects = []
+    for (let i = 0; i < 5; i++) {
+      // Encontrar o próximo número disponível
+      while (allEffectNumbers.includes(nextAvailableNumber)) {
+        nextAvailableNumber++
+      }
+      
+      newEffects.push({
+        id: nextEffectId + i,
+        effectNumber: nextAvailableNumber,
+        isComplex: false,
+        effectLines: []
+      })
+      
+      allEffectNumbers.push(nextAvailableNumber)
+      nextAvailableNumber++
+    }
+    
+    setGroups(groups.map(group => 
+      group.id === groupId 
+        ? { ...group, effects: [...group.effects, ...newEffects] }
+        : group
+    ))
+    setNextEffectId(nextEffectId + 5)
+  }
+
   const removeEffect = (groupId, effectId) => {
     setGroups(groups.map(group => 
       group.id === groupId 
@@ -336,6 +373,13 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                 >
                   <Plus className="w-3 h-3" />
                   Efeito
+                </button>
+                <button
+                  onClick={() => addMultipleEffects(group.id)}
+                  className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Múltiplos Efeitos
                 </button>
                 <button
                   onClick={() => removeGroup(group.id)}

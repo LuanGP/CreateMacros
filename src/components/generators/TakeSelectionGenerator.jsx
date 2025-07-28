@@ -599,9 +599,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
               
               <div className="text-sm text-gray-600 space-y-2">
                 <p className="font-medium">Forma de adicionar:</p>
-                <p>• Separe por vírgulas para efeitos diferentes, como: <code className="bg-gray-100 px-1 rounded">1, 6, 14</code></p>
-                <p>• Separe com hífens para blocos, como: <code className="bg-gray-100 px-1 rounded">1-8</code> (vai adicionar 1,2,3,4,5,6,7,8)</p>
-                <p>• Exemplo misto: <code className="bg-gray-100 px-1 rounded">1, 3-7, 10</code> → Adiciona efeitos 1, 3, 4, 5, 6, 7, 10</p>
+                <p>• Separe por vírgulas para efeitos diferentes, como:</p>
+                <p className="ml-4"><code className="bg-gray-100 px-1 rounded">1, 6, 14</code></p>
+                <p>• Separe com hífens para blocos, como:</p>
+                <p className="ml-4"><code className="bg-gray-100 px-1 rounded">1-8</code> (vai adicionar 1,2,3,4,5,6,7,8)</p>
+                <p>• Exemplo misto:</p>
+                <p className="ml-4"><code className="bg-gray-100 px-1 rounded">1, 3-7, 10</code> → Adiciona efeitos 1, 3, 4, 5, 6, 7, 10</p>
               </div>
               
               <div className="flex gap-2 pt-4">

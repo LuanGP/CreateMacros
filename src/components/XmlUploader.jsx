@@ -36,7 +36,6 @@ function XmlUploader({ onXmlLoaded }) {
       // Extrair o nome da macro
       const macroNameMatch = xmlContent.match(/<Macro[^>]*name="([^"]*)"[^>]*>/)
       const macroName = macroNameMatch ? macroNameMatch[1] : 'TakeSelection'
-      console.log('Extracted macro name:', macroName) // Debug log
       
       // Extrair as linhas da macro do XML
       const macroLines = []

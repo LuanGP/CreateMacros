@@ -7,8 +7,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   const [nextGroupId, setNextGroupId] = useState(1)
   const [nextEffectId, setNextEffectId] = useState(1)
   const [nextEffectLineId, setNextEffectLineId] = useState(1)
-  const [invalidEffects, setInvalidEffects] = useState({})
-  const [invalidLines, setInvalidLines] = useState({})
   const [collapsedEffects, setCollapsedEffects] = useState({})
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const [showMultipleEffectsModal, setShowMultipleEffectsModal] = useState(false)
@@ -28,73 +26,60 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   }, [initialGroups])
 
   // Gerar macro sempre que os dados mudarem
+  const [duplicates, setDuplicates] = useState({})
+
   useEffect(() => {
     const macro = generateTakeSelectionMacro(groups)
     onMacroGenerated(macro)
+    
+    // Analisar duplicatas no macro gerado
+    const foundDuplicates = analyzeMacroForDuplicates(macro)
+    setDuplicates(foundDuplicates)
   }, [groups, onMacroGenerated])
 
-  // Validação global de efeitos
-  useEffect(() => {
-    const newInvalidEffects = {}
-    const newInvalidLines = {}
 
-    groups.forEach(group => {
-      group.effects.forEach(effect => {
-        const effectNumber = effect.effectNumber
-        
-        // Verificar conflitos de efeitos
-        const hasConflict = groups.some(g =>
-          g.effects.some(e => 
-            e.id !== effect.id && 
-            e.effectNumber === effectNumber && 
-            (!e.isComplex || !effect.isComplex) // Se qualquer um não for complexo, há conflito
-          )
-        )
-        
-        // Verificar se este efeito NÃO-complexo conflita com efeitos complexos existentes
-        const hasComplexConflict = !effect.isComplex && groups.some(g =>
-          g.effects.some(e => 
-            e.id !== effect.id && 
-            e.effectNumber === effectNumber && e.isComplex
-          )
-        )
-        
-        if (hasConflict || hasComplexConflict) {
-          newInvalidEffects[effect.id] = true
-        }
 
-        // Verificar conflitos de linhas (apenas para efeitos complexos)
-        if (effect.isComplex && effect.effectLines) {
-          effect.effectLines.forEach(line => {
-            const lineNumber = line.lineNumber
-            
-            // Verificar se existe um efeito não-complexo com o mesmo número
-            const hasNonComplexEffect = groups.some(g =>
-              g.effects.some(e => 
-                e.effectNumber === effectNumber && !e.isComplex
-              )
-            )
-            
-            // Verificar se existe uma linha duplicada em outros efeitos complexos
-            const hasDuplicateLine = groups.some(g =>
-              g.effects.some(e => 
-                e.isComplex && e.effectLines && e.effectLines.some(l =>
-                  l.id !== line.id && l.lineNumber === lineNumber
-                )
-              )
-            )
-            
-            if (hasNonComplexEffect || hasDuplicateLine) {
-              newInvalidLines[line.id] = true
-            }
+  const analyzeMacroForDuplicates = (macroText) => {
+    const lines = macroText.split('\n').filter(line => line.trim() !== '')
+    const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
+    const duplicates = {}
+    
+    storeEffectLines.forEach((line, index) => {
+      const lineNumber = index + 1
+      const isDuplicate = storeEffectLines.some((otherLine, otherIndex) => 
+        otherIndex !== index && otherLine === line
+      )
+      
+      if (isDuplicate) {
+        // Encontrar qual efeito/linha corresponde a esta linha do macro
+        const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o/)
+        if (effectMatch) {
+          const effectNumber = parseInt(effectMatch[1])
+          const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
+          
+          // Encontrar o efeito correspondente
+          groups.forEach(group => {
+            group.effects.forEach(effect => {
+              if (effect.effectNumber === effectNumber) {
+                if (lineNumber) {
+                  // É uma linha específica de efeito complexo
+                  const line = effect.effectLines?.find(l => l.lineNumber === lineNumber)
+                  if (line) {
+                    duplicates[`line-${line.id}`] = true
+                  }
+                } else {
+                  // É um efeito não-complexo
+                  duplicates[`effect-${effect.id}`] = true
+                }
+              }
+            })
           })
         }
-      })
+      }
     })
-
-    setInvalidEffects(newInvalidEffects)
-    setInvalidLines(newInvalidLines)
-  }, [groups])
+    
+    return duplicates
+  }
 
   const generateTakeSelectionMacro = (groupsData) => {
     let macro = 'Clear\nClear\nClear\n'
@@ -172,21 +157,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     return !isNaN(value) && !isNaN(parseFloat(value))
   }
 
-  const isEffectNumberAvailable = (effectNumber, currentGroupId, currentEffectId) => {
-    // Se o valor não for um número válido, não mostrar erro (permitir digitação)
-    const numValue = parseInt(effectNumber)
-    if (isNaN(numValue) || numValue <= 0) {
-      return true
-    }
-    
-    return !groups.some(group => 
-      group.id !== currentGroupId && 
-      group.effects.some(effect => 
-        effect.id !== currentEffectId && 
-        effect.effectNumber === numValue
-      )
-    )
-  }
+
 
   const addEffect = (groupId) => {
     const group = groups.find(g => g.id === groupId)
@@ -409,26 +380,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     }))
   }
 
-  const isLineNumberAvailable = (lineNumber, groupId, effectId, currentLineId) => {
-    // Se o valor não for um número válido, não mostrar erro (permitir digitação)
-    const numValue = parseInt(lineNumber)
-    if (isNaN(numValue) || numValue <= 0) {
-      return true
-    }
-    
-    const group = groups.find(g => g.id === groupId)
-    const effect = group?.effects.find(e => e.id === effectId)
-    
-    if (!effect || !effect.effectLines) {
-      return true
-    }
-    
-    // Verificar duplicidade apenas dentro do mesmo efeito
-    return !effect.effectLines.some(line => 
-      line.id !== currentLineId && 
-      line.lineNumber === numValue
-    )
-  }
+
 
 
 
@@ -511,7 +463,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                         value={effect.effectNumber}
                         onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
                         className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
-                          invalidEffects[effect.id] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          duplicates[`effect-${effect.id}`] ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         }`}
                         placeholder="Nº"
                         min="1"
@@ -524,7 +476,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                           {collapsedEffects[effect.id] ? 'Expandir' : 'Minimizar'}
                         </button>
                       )}
-                      {invalidEffects[effect.id] && (
+                      {duplicates[`effect-${effect.id}`] && (
                         <span className="text-xs text-red-600">Já usado</span>
                       )}
                     </div>
@@ -586,12 +538,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                                   value={line.lineNumber}
                                   onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
                                   className={`w-16 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                                    invalidLines[line.id] ? 'border-red-500 bg-red-50' : 'border-blue-300'
+                                    duplicates[`line-${line.id}`] ? 'border-red-500 bg-red-50' : 'border-blue-300'
                                   }`}
                                   placeholder="Nº"
                                   min="1"
                                 />
-                                {invalidLines[line.id] && (
+                                {duplicates[`line-${line.id}`] && (
                                   <span className="text-xs text-red-600">Já usado</span>
                                 )}
                                 <button

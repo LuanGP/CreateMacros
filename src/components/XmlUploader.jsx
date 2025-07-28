@@ -87,8 +87,8 @@ function XmlUploader({ onXmlLoaded }) {
             }
           }
 
-          // Padrão para capturar Store Effect X.Y.* /o ou Store Effect X.* /o
-          const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?\.\* \/o/)
+          // Padrão para capturar Store Effect X.Y.* /o, Store Effect X.* /o, ou Store Effect X.Y /o
+          const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o/)
           console.log('Effect match for line:', line, effectMatch) // Debug log
           
           if (effectMatch) {

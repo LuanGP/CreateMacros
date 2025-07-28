@@ -3,7 +3,7 @@ import TakeSelectionGenerator from './generators/TakeSelectionGenerator'
 import XmlUploader from './XmlUploader'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
-function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
+function MacroGenerator({ onMacroGenerated, onMacroNameChange, macroName }) {
   const [selectedGenerator, setSelectedGenerator] = useState('take-selection')
   const [isExpanded, setIsExpanded] = useState(true)
   const [showUploader, setShowUploader] = useState(false)
@@ -29,6 +29,7 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
           type="text"
           id="macroName"
           name="macroName"
+          value={macroName || ''}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="Ex: Take_Selection_Show"
           onChange={(e) => onMacroNameChange(e.target.value)}
@@ -105,6 +106,7 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
             <XmlUploader 
               onXmlLoaded={(parsedData) => {
                 console.log('Received parsed data:', parsedData) // Debug log
+                console.log('Setting macro name to:', parsedData.macroName) // Debug log
                 onMacroGenerated(parsedData.macroText)
                 onMacroNameChange(parsedData.macroName)
                 setLoadedGroups(parsedData.groups)

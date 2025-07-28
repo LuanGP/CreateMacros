@@ -26,6 +26,7 @@ function App() {
             <MacroGenerator 
               onMacroGenerated={setGeneratedMacro}
               onMacroNameChange={setMacroName}
+              macroName={macroName}
             />
           </div>
 

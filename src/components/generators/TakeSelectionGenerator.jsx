@@ -159,9 +159,19 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   }
 
   const addEffectLine = (groupId, effectId) => {
+    const group = groups.find(g => g.id === groupId)
+    const effect = group?.effects.find(e => e.id === effectId)
+    
+    // Encontrar o próximo número de linha disponível
+    const existingLineNumbers = (effect?.effectLines || []).map(line => line.lineNumber)
+    let nextAvailableNumber = 1
+    while (existingLineNumbers.includes(nextAvailableNumber)) {
+      nextAvailableNumber++
+    }
+    
     const newLine = {
       id: nextEffectLineId,
-      lineNumber: 1
+      lineNumber: nextAvailableNumber
     }
     
     setGroups(groups.map(group => 

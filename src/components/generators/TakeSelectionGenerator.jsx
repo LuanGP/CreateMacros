@@ -47,7 +47,15 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
       }
       
       group.effects.forEach((effect) => {
-        macro += `Store Effect ${effect.effectNumber}.* /o\n`
+        if (effect.isComplex && effect.effectLines && effect.effectLines.length > 0) {
+          // Para efeitos complexos, gerar uma linha para cada linha do efeito
+          effect.effectLines.forEach(line => {
+            macro += `Store Effect ${effect.effectNumber}.${line.lineNumber} /o\n`
+          })
+        } else {
+          // Para efeitos simples, gerar a linha padrão
+          macro += `Store Effect ${effect.effectNumber}.* /o\n`
+        }
       })
     })
 

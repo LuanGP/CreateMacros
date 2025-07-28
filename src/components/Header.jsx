@@ -10,9 +10,12 @@ function Header() {
             <Zap className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">CreateMacros</h1>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
             <span className="text-sm text-gray-500">
               Gerador de Macros para GrandMA2
+            </span>
+            <span className="text-xs text-primary-600 font-medium">
+              by Luan
             </span>
           </div>
         </div>

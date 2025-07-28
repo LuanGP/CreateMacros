@@ -40,6 +40,20 @@ function App() {
           </div>
         </div>
       </main>
+      
+      {/* Footer com assinatura */}
+      <footer className="mt-16 py-8 border-t border-gray-200 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Desenvolvido por <span className="font-semibold text-primary-600">Luan</span>
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              CreateMacros - GrandMA2 Macro Generator
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

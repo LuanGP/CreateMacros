@@ -59,7 +59,15 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           )
         )
         
-        if (hasConflict) {
+        // Verificar se este efeito NÃO-complexo conflita com efeitos complexos existentes
+        const hasComplexConflict = !effect.isComplex && groups.some(g =>
+          g.effects.some(e => 
+            e.id !== effect.id && 
+            e.effectNumber === effectNumber && e.isComplex
+          )
+        )
+        
+        if (hasConflict || hasComplexConflict) {
           newInvalidEffects[effect.id] = true
         }
 

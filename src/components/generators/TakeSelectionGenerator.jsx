@@ -439,7 +439,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                           const numValue = parseInt(effect.effectNumber)
                           const isDuplicate = !isNaN(numValue) && numValue > 0 && groups.some(g =>
                             g.id !== group.id &&
-                            g.effects.some(e => e.effectNumber === numValue)
+                            g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
                           )
                           setInvalidEffects(prev => ({
                             ...prev,

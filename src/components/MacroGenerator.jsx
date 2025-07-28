@@ -70,13 +70,11 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
           )}
         </button>
 
-        {isExpanded && (
-          <div className="p-4">
-            {selectedGenerator === 'take-selection' && (
-              <TakeSelectionGenerator onMacroGenerated={onMacroGenerated} />
-            )}
-          </div>
-        )}
+        <div className={`p-4 ${!isExpanded ? 'hidden' : ''}`}>
+          {selectedGenerator === 'take-selection' && (
+            <TakeSelectionGenerator onMacroGenerated={onMacroGenerated} />
+          )}
+        </div>
       </div>
     </div>
   )

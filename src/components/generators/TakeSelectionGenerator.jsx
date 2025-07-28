@@ -44,22 +44,16 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     const lines = macroText.split('\n').filter(line => line.trim() !== '')
     const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
     
-    // Debug: Log das linhas encontradas
-    console.log('🔍 Analisando macro:', macroText)
-    console.log('📝 Linhas Store Effect encontradas:', storeEffectLines)
-    
     // Contar ocorrências de cada linha
     const lineCounts = {}
     storeEffectLines.forEach(line => {
       lineCounts[line] = (lineCounts[line] || 0) + 1
     })
     
-    console.log('📊 Contagem de linhas:', lineCounts)
-    
     // Para cada linha que aparece mais de uma vez, marcar TODAS as ocorrências
     Object.keys(lineCounts).forEach(line => {
       if (lineCounts[line] > 1) {
-        console.log('🚨 Duplicata detectada:', line, 'ocorrências:', lineCounts[line])
+        console.log('🚨 DUPLICATA:', line, 'ocorrências:', lineCounts[line])
         
         // Regex melhorado para capturar mais variações de Store Effect
         const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o?/)
@@ -67,19 +61,11 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
           
-          console.log('🔢 Efeito extraído:', effectNumber, 'Linha:', lineNumber)
-          
           // Encontrar todos os efeitos correspondentes
           const matchingEffects = []
-          console.log('🔍 Procurando efeitos com número:', effectNumber)
-          console.log('📊 Groups para busca:', groupsData)
           
           groupsData.forEach((group, groupIndex) => {
-            console.log(`📦 Analisando grupo ${groupIndex + 1}:`, group)
             group.effects.forEach((effect, effectIndex) => {
-              console.log(`  🎯 Efeito ${effectIndex + 1}:`, effect)
-              console.log(`  🔢 Comparando: ${effect.effectNumber} === ${effectNumber}?`, effect.effectNumber === effectNumber)
-              
               if (effect.effectNumber === effectNumber) {
                 if (lineNumber) {
                   // É uma linha específica de efeito complexo
@@ -90,13 +76,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                 } else {
                   // É um efeito não-complexo
                   matchingEffects.push({ type: 'effect', id: effect.id })
-                  console.log(`  ✅ Efeito ${effect.id} adicionado como duplicata`)
                 }
               }
             })
           })
           
-          console.log('🎯 Efeitos correspondentes encontrados:', matchingEffects)
+          console.log('🎯 Efeitos encontrados:', matchingEffects)
           
           // Marcar TODOS os efeitos correspondentes como duplicatas
           matchingEffects.forEach(match => {
@@ -163,10 +148,11 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     }
 
     // Verificar duplicatas imediatamente após gerar o macro
-    console.log('🔄 Macro gerado, verificando duplicatas...')
+    // SEMPRE limpar duplicatas antes de verificar
+    setDuplicates({})
+    
     const foundDuplicates = analyzeMacroForDuplicates(macro, groupsData)
     setDuplicates(foundDuplicates)
-    console.log('✅ Duplicatas definidas:', foundDuplicates)
 
     return macro
   }

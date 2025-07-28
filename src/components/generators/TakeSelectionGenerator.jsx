@@ -456,13 +456,13 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                         onBlur={() => {
                           const numValue = parseInt(effect.effectNumber)
                           const isDuplicate = !isNaN(numValue) && numValue > 0 && (
-                            // Verificar efeitos em outros grupos
+                            // Verificar efeitos NÃO-complexos em outros grupos
                             groups.some(g =>
                               g.id !== group.id &&
-                              g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
+                              g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue && !e.isComplex)
                             ) ||
-                            // Verificar efeitos no mesmo grupo
-                            group.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
+                            // Verificar efeitos NÃO-complexos no mesmo grupo
+                            group.effects.some(e => e.id !== effect.id && e.effectNumber === numValue && !e.isComplex)
                           )
                           setInvalidEffects(prev => ({
                             ...prev,

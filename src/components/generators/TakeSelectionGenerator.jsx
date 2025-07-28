@@ -34,6 +34,8 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     
     // Analisar duplicatas no macro gerado
     const foundDuplicates = analyzeMacroForDuplicates(macro)
+    console.log('Macro gerado:', macro)
+    console.log('Duplicatas encontradas:', foundDuplicates)
     setDuplicates(foundDuplicates)
   }, [groups, onMacroGenerated])
 
@@ -44,21 +46,22 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
     const duplicates = {}
     
-    // Criar um mapa para rastrear a última ocorrência de cada linha
-    const lastOccurrenceMap = new Map()
+    // Contar ocorrências de cada linha
+    const lineCounts = {}
+    storeEffectLines.forEach(line => {
+      lineCounts[line] = (lineCounts[line] || 0) + 1
+    })
     
-    storeEffectLines.forEach((line, index) => {
-      if (lastOccurrenceMap.has(line)) {
-        // Esta é uma duplicata, marcar a última ocorrência
-        const lastIndex = lastOccurrenceMap.get(line)
-        
-        // Encontrar qual efeito/linha corresponde à última ocorrência
+    // Para cada linha que aparece mais de uma vez, marcar a última ocorrência
+    Object.keys(lineCounts).forEach(line => {
+      if (lineCounts[line] > 1) {
+        // Encontrar todos os efeitos que geram esta linha
         const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o/)
         if (effectMatch) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
           
-          // Encontrar o efeito correspondente à última ocorrência (maior ID = mais recente)
+          // Encontrar todos os efeitos correspondentes
           const matchingEffects = []
           groups.forEach(group => {
             group.effects.forEach(effect => {
@@ -88,11 +91,10 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
             } else {
               duplicates[`effect-${lastEffect.id}`] = true
             }
+            
+            console.log(`Duplicata encontrada: ${line} -> efeito ID: ${lastEffect.id}`)
           }
         }
-      } else {
-        // Primeira ocorrência, armazenar o índice
-        lastOccurrenceMap.set(line, index)
       }
     })
     

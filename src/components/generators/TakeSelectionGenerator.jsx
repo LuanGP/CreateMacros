@@ -289,8 +289,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           }
         : group
     ))
-    // Limpa o erro visual ao digitar
-    setInvalidEffects(prev => ({ ...prev, [effectId]: false }))
   }
 
   const addEffectLine = (groupId, effectId) => {
@@ -380,8 +378,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           }
         : group
     ))
-    // Limpa o erro visual ao digitar
-    setInvalidLines(prev => ({ ...prev, [lineId]: false }))
   }
 
   const toggleEffectCollapse = (effectId) => {

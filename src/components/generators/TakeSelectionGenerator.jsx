@@ -41,6 +41,61 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     onMacroGenerated(macro)
   }, [groups, onMacroGenerated])
 
+  // Validação global de efeitos
+  useEffect(() => {
+    const newInvalidEffects = {}
+    const newInvalidLines = {}
+
+    groups.forEach(group => {
+      group.effects.forEach(effect => {
+        const effectNumber = effect.effectNumber
+        
+        // Verificar conflitos de efeitos
+        const hasConflict = groups.some(g =>
+          g.effects.some(e => 
+            e.id !== effect.id && 
+            e.effectNumber === effectNumber && 
+            (!e.isComplex || !effect.isComplex) // Se qualquer um não for complexo, há conflito
+          )
+        )
+        
+        if (hasConflict) {
+          newInvalidEffects[effect.id] = true
+        }
+
+        // Verificar conflitos de linhas (apenas para efeitos complexos)
+        if (effect.isComplex && effect.effectLines) {
+          effect.effectLines.forEach(line => {
+            const lineNumber = line.lineNumber
+            
+            // Verificar se existe um efeito não-complexo com o mesmo número
+            const hasNonComplexEffect = groups.some(g =>
+              g.effects.some(e => 
+                e.effectNumber === effectNumber && !e.isComplex
+              )
+            )
+            
+            // Verificar se existe uma linha duplicada em outros efeitos complexos
+            const hasDuplicateLine = groups.some(g =>
+              g.effects.some(e => 
+                e.isComplex && e.effectLines && e.effectLines.some(l =>
+                  l.id !== line.id && l.lineNumber === lineNumber
+                )
+              )
+            )
+            
+            if (hasNonComplexEffect || hasDuplicateLine) {
+              newInvalidLines[line.id] = true
+            }
+          })
+        }
+      })
+    })
+
+    setInvalidEffects(newInvalidEffects)
+    setInvalidLines(newInvalidLines)
+  }, [groups])
+
   const generateTakeSelectionMacro = (groupsData) => {
     let macro = 'Clear\nClear\nClear\n'
 
@@ -455,28 +510,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                         type="number"
                         value={effect.effectNumber}
                         onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
-                        onBlur={() => {
-                          const numValue = parseInt(effect.effectNumber)
-                          const isDuplicate = !isNaN(numValue) && numValue > 0 && (
-                            // Verificar efeitos NÃO-complexos em outros grupos
-                            groups.some(g =>
-                              g.id !== group.id &&
-                              g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue && !e.isComplex)
-                            ) ||
-                            // Verificar efeitos NÃO-complexos no mesmo grupo
-                            group.effects.some(e => e.id !== effect.id && e.effectNumber === numValue && !e.isComplex)
-                          )
-                          
-                          // Verificar se este efeito NÃO-complexo conflita com efeitos complexos existentes
-                          const hasComplexConflict = !effect.isComplex && groups.some(g =>
-                            g.effects.some(e => e.effectNumber === numValue && e.isComplex)
-                          )
-                          
-                          setInvalidEffects(prev => ({
-                            ...prev,
-                            [effect.id]: isDuplicate || hasComplexConflict
-                          }))
-                        }}
                         className={`w-16 px-2 py-1 text-sm border rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
                           invalidEffects[effect.id] ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         }`}
@@ -552,32 +585,6 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                                   type="number"
                                   value={line.lineNumber}
                                   onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
-                                  onBlur={() => {
-                                    const numValue = parseInt(line.lineNumber)
-                                    const effectNumber = effect.effectNumber
-                                    
-                                    // Verificar se existe um efeito NÃO-complexo com o mesmo número
-                                    const hasNonComplexEffect = groups.some(g =>
-                                      g.effects.some(e => 
-                                        e.effectNumber === effectNumber && !e.isComplex && e.id !== effect.id
-                                      )
-                                    )
-                                    
-                                    // Verificar se existe uma linha duplicada em outros efeitos complexos
-                                    const hasDuplicateLine = groups.some(g =>
-                                      g.effects.some(e => 
-                                        e.isComplex && e.effectLines && e.effectLines.some(l =>
-                                          l.id !== line.id && l.lineNumber === numValue
-                                        )
-                                      )
-                                    )
-                                    
-                                    const isDuplicate = !isNaN(numValue) && numValue > 0 && (hasNonComplexEffect || hasDuplicateLine)
-                                    setInvalidLines(prev => ({
-                                      ...prev,
-                                      [line.id]: isDuplicate
-                                    }))
-                                  }}
                                   className={`w-16 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
                                     invalidLines[line.id] ? 'border-red-500 bg-red-50' : 'border-blue-300'
                                   }`}

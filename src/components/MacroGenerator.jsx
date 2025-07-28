@@ -104,6 +104,7 @@ function MacroGenerator({ onMacroGenerated, onMacroNameChange }) {
           {showUploader ? (
             <XmlUploader 
               onXmlLoaded={(parsedData) => {
+                console.log('Received parsed data:', parsedData) // Debug log
                 onMacroGenerated(parsedData.macroText)
                 onMacroNameChange(parsedData.macroName)
                 setLoadedGroups(parsedData.groups)

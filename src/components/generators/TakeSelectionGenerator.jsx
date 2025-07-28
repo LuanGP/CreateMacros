@@ -189,7 +189,10 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     if (!currentGroupId || !multipleEffectsInput.trim()) return
     
     const effectNumbers = processMultipleEffects(multipleEffectsInput)
-    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    const currentGroup = groups.find(g => g.id === currentGroupId)
+    const currentGroupEffectNumbers = currentGroup ? currentGroup.effects.map(e => e.effectNumber) : []
+    const otherGroupsEffectNumbers = groups.filter(g => g.id !== currentGroupId).flatMap(g => g.effects.map(e => e.effectNumber))
+    const allEffectNumbers = [...currentGroupEffectNumbers, ...otherGroupsEffectNumbers]
     
     // Filtrar apenas números que não existem
     const newEffectNumbers = effectNumbers.filter(num => !allEffectNumbers.includes(num))
@@ -437,9 +440,14 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                         onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
                         onBlur={() => {
                           const numValue = parseInt(effect.effectNumber)
-                          const isDuplicate = !isNaN(numValue) && numValue > 0 && groups.some(g =>
-                            g.id !== group.id &&
-                            g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
+                          const isDuplicate = !isNaN(numValue) && numValue > 0 && (
+                            // Verificar efeitos em outros grupos
+                            groups.some(g =>
+                              g.id !== group.id &&
+                              g.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
+                            ) ||
+                            // Verificar efeitos no mesmo grupo
+                            group.effects.some(e => e.id !== effect.id && e.effectNumber === numValue)
                           )
                           setInvalidEffects(prev => ({
                             ...prev,

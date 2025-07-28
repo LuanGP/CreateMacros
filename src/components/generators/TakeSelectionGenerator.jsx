@@ -64,8 +64,13 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           // Encontrar todos os efeitos correspondentes
           const matchingEffects = []
           
+          console.log('🔍 Procurando efeito número:', effectNumber)
           groupsData.forEach((group, groupIndex) => {
+            console.log(`  📦 Grupo ${groupIndex + 1}:`, group)
             group.effects.forEach((effect, effectIndex) => {
+              console.log(`    🎯 Efeito ${effectIndex + 1}: número=${effect.effectNumber}, tipo=${typeof effect.effectNumber}`)
+              console.log(`    🔢 Comparando: ${effect.effectNumber} === ${effectNumber}?`, effect.effectNumber === effectNumber)
+              
               if (effect.effectNumber === effectNumber) {
                 if (lineNumber) {
                   // É uma linha específica de efeito complexo
@@ -76,6 +81,7 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                 } else {
                   // É um efeito não-complexo
                   matchingEffects.push({ type: 'effect', id: effect.id })
+                  console.log(`    ✅ Efeito ${effect.id} adicionado como duplicata`)
                 }
               }
             })

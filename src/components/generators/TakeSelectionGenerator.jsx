@@ -41,62 +41,76 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     // Sempre limpar dados anteriores
     const duplicates = {}
     
-    const lines = macroText.split('\n').filter(line => line.trim() !== '')
-    const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
+    // Agrupar efeitos por número para análise de conflitos
+    const effectsByNumber = {}
     
-    // Contar ocorrências de cada linha
-    const lineCounts = {}
-    storeEffectLines.forEach(line => {
-      lineCounts[line] = (lineCounts[line] || 0) + 1
-    })
-    
-    // Para cada linha que aparece mais de uma vez, marcar TODAS as ocorrências
-    Object.keys(lineCounts).forEach(line => {
-      if (lineCounts[line] > 1) {
-        console.log('🚨 DUPLICATA:', line, 'ocorrências:', lineCounts[line])
+    groupsData.forEach((group, groupIndex) => {
+      group.effects.forEach((effect, effectIndex) => {
+        const effectNumber = parseInt(effect.effectNumber)
+        console.log(`🔢 Efeito ${effect.id}: número=${effect.effectNumber}, tipo=${typeof effect.effectNumber}, parseado=${effectNumber}`)
         
-        // Regex melhorado para capturar mais variações de Store Effect
-        const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o?/)
-        if (effectMatch) {
-          const effectNumber = parseInt(effectMatch[1])
-          const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
-          
-          // Encontrar todos os efeitos correspondentes
-          const matchingEffects = []
-          
-          console.log('🔍 Procurando efeito número:', effectNumber)
-          groupsData.forEach((group, groupIndex) => {
-            console.log(`  📦 Grupo ${groupIndex + 1}:`, group)
-            group.effects.forEach((effect, effectIndex) => {
-              console.log(`    🎯 Efeito ${effectIndex + 1}: número=${effect.effectNumber}, tipo=${typeof effect.effectNumber}`)
-              console.log(`    🔢 Comparando: ${effect.effectNumber} === ${effectNumber}?`, effect.effectNumber === effectNumber)
-              
-              if (effect.effectNumber === effectNumber) {
-                if (lineNumber) {
-                  // É uma linha específica de efeito complexo
-                  const effectLine = effect.effectLines?.find(l => l.lineNumber === lineNumber)
-                  if (effectLine) {
-                    matchingEffects.push({ type: 'line', id: effectLine.id, effectId: effect.id })
-                  }
-                } else {
-                  // É um efeito não-complexo
-                  matchingEffects.push({ type: 'effect', id: effect.id })
-                  console.log(`    ✅ Efeito ${effect.id} adicionado como duplicata`)
-                }
-              }
+        if (!effectsByNumber[effectNumber]) {
+          effectsByNumber[effectNumber] = []
+        }
+        
+        if (effect.isComplex && effect.effectLines && effect.effectLines.length > 0) {
+          // Efeito complexo - adicionar cada linha separadamente
+          effect.effectLines.forEach(line => {
+            effectsByNumber[effectNumber].push({
+              type: 'complex',
+              effectId: effect.id,
+              lineId: line.id,
+              lineNumber: line.lineNumber,
+              groupId: group.id
             })
           })
-          
-          console.log('🎯 Efeitos encontrados:', matchingEffects)
-          
-          // Marcar TODOS os efeitos correspondentes como duplicatas
-          matchingEffects.forEach(match => {
-            if (match.type === 'line') {
-              duplicates[`line-${match.id}`] = true
+        } else {
+          // Efeito simples
+          effectsByNumber[effectNumber].push({
+            type: 'simple',
+            effectId: effect.id,
+            groupId: group.id
+          })
+        }
+      })
+    })
+    
+    console.log('📊 Efeitos agrupados por número:', effectsByNumber)
+    
+    // Analisar conflitos para cada número de efeito
+    Object.keys(effectsByNumber).forEach(effectNumber => {
+      const effects = effectsByNumber[effectNumber]
+      
+      if (effects.length > 1) {
+        console.log(`🔍 Analisando conflitos para efeito ${effectNumber}:`, effects)
+        
+        // Verificar se há efeito simples (que conflita com tudo)
+        const hasSimpleEffect = effects.some(e => e.type === 'simple')
+        const complexEffects = effects.filter(e => e.type === 'complex')
+        
+        if (hasSimpleEffect) {
+          // Efeito simples presente - marcar todos como conflito
+          console.log(`🚨 Efeito ${effectNumber} tem efeito simples - marcando todos como conflito`)
+          effects.forEach(effect => {
+            if (effect.type === 'simple') {
+              duplicates[`effect-${effect.effectId}`] = true
             } else {
-              duplicates[`effect-${match.id}`] = true
+              duplicates[`line-${effect.lineId}`] = true
             }
           })
+        } else if (complexEffects.length > 1) {
+          // Apenas efeitos complexos - verificar linhas duplicadas
+          const lineNumbers = complexEffects.map(e => parseInt(e.lineNumber))
+          const duplicateLines = lineNumbers.filter((line, index) => lineNumbers.indexOf(line) !== index)
+          
+          if (duplicateLines.length > 0) {
+            console.log(`🚨 Efeito ${effectNumber} tem linhas duplicadas:`, duplicateLines)
+            complexEffects.forEach(effect => {
+              if (duplicateLines.includes(parseInt(effect.lineNumber))) {
+                duplicates[`line-${effect.lineId}`] = true
+              }
+            })
+          }
         }
       }
     })
@@ -117,10 +131,10 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   const generateTakeSelectionMacro = (groupsData) => {
     let macro = 'Clear\nClear\nClear\n'
 
-    // Coletar todos os números de efeitos
-    const allEffectNumbers = groupsData.flatMap(group => 
-      group.effects.map(effect => effect.effectNumber)
-    ).sort((a, b) => a - b)
+    // Coletar todos os números de efeitos (removendo duplicatas)
+    const allEffectNumbers = [...new Set(groupsData.flatMap(group => 
+      group.effects.map(effect => parseInt(effect.effectNumber))
+    ))].sort((a, b) => a - b)
 
     groupsData.forEach((group, index) => {
       if (index > 0) {

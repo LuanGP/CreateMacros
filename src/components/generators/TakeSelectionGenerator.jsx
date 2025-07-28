@@ -38,19 +38,26 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     console.log('🔄 Groups mudou, executando análise de duplicatas...')
     console.log('📊 Groups atual:', groups)
     
+    // Limpar duplicatas imediatamente
+    setDuplicates({})
+    
     const timeoutId = setTimeout(() => {
       // Sempre gerar macro fresco e analisar
       const macro = generateTakeSelectionMacro(groups)
-      const foundDuplicates = analyzeMacroForDuplicates(macro)
+      console.log('🆕 Macro gerado:', macro)
+      
+      const foundDuplicates = analyzeMacroForDuplicates(macro, groups)
+      console.log('🆕 Duplicatas encontradas:', foundDuplicates)
+      
       setDuplicates(foundDuplicates)
-    }, 100) // Reduzido para 100ms
+    }, 50) // Reduzido ainda mais para 50ms
     
     return () => clearTimeout(timeoutId)
   }, [groups]) // Dependência direta em groups, sem useCallback
 
 
 
-  const analyzeMacroForDuplicates = (macroText) => {
+  const analyzeMacroForDuplicates = (macroText, groupsData) => {
     // Sempre limpar dados anteriores
     const duplicates = {}
     
@@ -85,9 +92,9 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
           // Encontrar todos os efeitos correspondentes
           const matchingEffects = []
           console.log('🔍 Procurando efeitos com número:', effectNumber)
-          console.log('📊 Groups para busca:', groups)
+          console.log('📊 Groups para busca:', groupsData)
           
-          groups.forEach((group, groupIndex) => {
+          groupsData.forEach((group, groupIndex) => {
             console.log(`📦 Analisando grupo ${groupIndex + 1}:`, group)
             group.effects.forEach((effect, effectIndex) => {
               console.log(`  🎯 Efeito ${effectIndex + 1}:`, effect)

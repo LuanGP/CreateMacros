@@ -19,6 +19,9 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   const [invalidLines, setInvalidLines] = useState({})
   const [collapsedEffects, setCollapsedEffects] = useState({})
   const [collapsedGroups, setCollapsedGroups] = useState({})
+  const [showMultipleEffectsModal, setShowMultipleEffectsModal] = useState(false)
+  const [multipleEffectsInput, setMultipleEffectsInput] = useState('')
+  const [currentGroupId, setCurrentGroupId] = useState(null)
 
   // Carregar dados iniciais se fornecidos
   useEffect(() => {
@@ -155,41 +158,65 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     setNextEffectId(nextEffectId + 1)
   }
 
-  const addMultipleEffects = (groupId) => {
-    const group = groups.find(g => g.id === groupId)
+
+
+  const processMultipleEffects = (input) => {
+    const effects = []
+    const parts = input.split(',').map(part => part.trim())
     
-    // Encontrar o próximo número de efeito disponível
-    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
-    let nextAvailableNumber = 1
-    while (allEffectNumbers.includes(nextAvailableNumber)) {
-      nextAvailableNumber++
-    }
-    
-    // Adicionar 5 efeitos de uma vez
-    const newEffects = []
-    for (let i = 0; i < 5; i++) {
-      // Encontrar o próximo número disponível
-      while (allEffectNumbers.includes(nextAvailableNumber)) {
-        nextAvailableNumber++
+    for (const part of parts) {
+      if (part.includes('-')) {
+        // Processar blocos (ex: 1-8)
+        const [start, end] = part.split('-').map(num => parseInt(num.trim()))
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            effects.push(i)
+          }
+        }
+      } else {
+        // Processar números individuais
+        const num = parseInt(part.trim())
+        if (!isNaN(num)) {
+          effects.push(num)
+        }
       }
-      
-      newEffects.push({
-        id: nextEffectId + i,
-        effectNumber: nextAvailableNumber,
-        isComplex: false,
-        effectLines: []
-      })
-      
-      allEffectNumbers.push(nextAvailableNumber)
-      nextAvailableNumber++
     }
+    
+    return effects
+  }
+
+  const addMultipleEffectsFromModal = () => {
+    if (!currentGroupId || !multipleEffectsInput.trim()) return
+    
+    const effectNumbers = processMultipleEffects(multipleEffectsInput)
+    const allEffectNumbers = groups.flatMap(g => g.effects.map(e => e.effectNumber))
+    
+    // Filtrar apenas números que não existem
+    const newEffectNumbers = effectNumbers.filter(num => !allEffectNumbers.includes(num))
+    
+    if (newEffectNumbers.length === 0) {
+      alert('Todos os números de efeito já existem!')
+      return
+    }
+    
+    const newEffects = newEffectNumbers.map((effectNumber, index) => ({
+      id: nextEffectId + index,
+      effectNumber: effectNumber,
+      isComplex: false,
+      effectLines: []
+    }))
     
     setGroups(groups.map(group => 
-      group.id === groupId 
+      group.id === currentGroupId 
         ? { ...group, effects: [...group.effects, ...newEffects] }
         : group
     ))
-    setNextEffectId(nextEffectId + 5)
+    setNextEffectId(nextEffectId + newEffects.length)
+    
+    // Limpar modal
+    setShowMultipleEffectsModal(false)
+    setMultipleEffectsInput('')
+    setCurrentGroupId(null)
   }
 
   const removeEffect = (groupId, effectId) => {
@@ -375,12 +402,16 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                   Efeito
                 </button>
                 <button
-                  onClick={() => addMultipleEffects(group.id)}
+                  onClick={() => {
+                    setCurrentGroupId(group.id)
+                    setShowMultipleEffectsModal(true)
+                  }}
                   className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   <Plus className="w-3 h-3" />
                   Múltiplos Efeitos
                 </button>
+
                 <button
                   onClick={() => removeGroup(group.id)}
                   className="p-1 text-red-600 hover:text-red-700 transition-colors"
@@ -541,6 +572,57 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
       {groups.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <p>Nenhum grupo configurado. Adicione um grupo para começar.</p>
+        </div>
+      )}
+
+      {/* Modal para múltiplos efeitos */}
+      {showMultipleEffectsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">
+              Adicionar múltiplos efeitos
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Digite aqui os efeitos:
+                </label>
+                <input
+                  type="text"
+                  value={multipleEffectsInput}
+                  onChange={(e) => setMultipleEffectsInput(e.target.value)}
+                  placeholder="Ex: 1, 6, 14 ou 1-8"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              
+              <div className="text-sm text-gray-600 space-y-2">
+                <p className="font-medium">Forma de adicionar:</p>
+                <p>• Separe por vírgulas para efeitos diferentes, como: <code className="bg-gray-100 px-1 rounded">1, 6, 14</code></p>
+                <p>• Separe com hífens para blocos, como: <code className="bg-gray-100 px-1 rounded">1-8</code> (vai adicionar 1,2,3,4,5,6,7,8)</p>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={() => {
+                    setShowMultipleEffectsModal(false)
+                    setMultipleEffectsInput('')
+                    setCurrentGroupId(null)
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={addMultipleEffectsFromModal}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

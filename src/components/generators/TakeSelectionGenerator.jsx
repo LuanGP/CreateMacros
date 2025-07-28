@@ -34,23 +34,28 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   }, [groups, onMacroGenerated])
 
   // Verificar duplicatas sempre que o macro for alterado (com debounce)
-  const debouncedAnalyzeDuplicates = useCallback(() => {
-    const macro = generateTakeSelectionMacro(groups)
-    const foundDuplicates = analyzeMacroForDuplicates(macro)
-    setDuplicates(foundDuplicates)
-  }, [groups])
-
   useEffect(() => {
-    const timeoutId = setTimeout(debouncedAnalyzeDuplicates, 100) // Reduzido para 100ms
+    console.log('🔄 Groups mudou, executando análise de duplicatas...')
+    console.log('📊 Groups atual:', groups)
+    
+    const timeoutId = setTimeout(() => {
+      // Sempre gerar macro fresco e analisar
+      const macro = generateTakeSelectionMacro(groups)
+      const foundDuplicates = analyzeMacroForDuplicates(macro)
+      setDuplicates(foundDuplicates)
+    }, 100) // Reduzido para 100ms
+    
     return () => clearTimeout(timeoutId)
-  }, [debouncedAnalyzeDuplicates])
+  }, [groups]) // Dependência direta em groups, sem useCallback
 
 
 
   const analyzeMacroForDuplicates = (macroText) => {
+    // Sempre limpar dados anteriores
+    const duplicates = {}
+    
     const lines = macroText.split('\n').filter(line => line.trim() !== '')
     const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
-    const duplicates = {}
     
     // Debug: Log das linhas encontradas
     console.log('🔍 Analisando macro:', macroText)

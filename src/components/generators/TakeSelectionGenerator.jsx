@@ -244,18 +244,18 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
 
   const toggleGroupCollapse = (groupId) => {
     const group = groups.find(g => g.id === groupId)
-    const allEffects = group?.effects || []
+    const complexEffects = group?.effects.filter(effect => effect.isComplex) || []
     
-    if (allEffects.length === 0) return
+    if (complexEffects.length === 0) return
     
-    // Verificar se todos os efeitos estão minimizados
-    const allCollapsed = allEffects.every(effect => collapsedEffects[effect.id])
+    // Verificar se todos os efeitos complexos estão minimizados
+    const allCollapsed = complexEffects.every(effect => collapsedEffects[effect.id])
     
     // Se todos estão minimizados, expandir todos. Se não, minimizar todos
     const newCollapsedState = !allCollapsed
     
     const newCollapsedEffects = { ...collapsedEffects }
-    allEffects.forEach(effect => {
+    complexEffects.forEach(effect => {
       newCollapsedEffects[effect.id] = newCollapsedState
     })
     
@@ -352,12 +352,12 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                   <Plus className="w-3 h-3" />
                   Efeito
                 </button>
-                {group.effects.length > 0 && (
+                {group.effects.some(effect => effect.isComplex) && (
                   <button
                     onClick={() => toggleGroupCollapse(group.id)}
                     className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
                   >
-                    {group.effects.every(effect => collapsedEffects[effect.id]) 
+                    {group.effects.filter(effect => effect.isComplex).every(effect => collapsedEffects[effect.id]) 
                       ? 'Expandir Todos' 
                       : 'Minimizar Todos'
                     }
@@ -418,12 +418,14 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                           Efeito complexo
                         </label>
                       </div>
-                      <button
-                        onClick={() => toggleEffectCollapse(effect.id)}
-                        className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                      >
-                        {collapsedEffects[effect.id] ? 'Expandir' : 'Minimizar'}
-                      </button>
+                      {effect.isComplex && (
+                        <button
+                          onClick={() => toggleEffectCollapse(effect.id)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                        >
+                          {collapsedEffects[effect.id] ? 'Expandir' : 'Minimizar'}
+                        </button>
+                      )}
                       <button
                         onClick={() => removeEffect(group.id, effect.id)}
                         className="p-1 text-red-600 hover:text-red-700 transition-colors"
@@ -502,14 +504,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                         </div>
                       )}
                       
-                      {/* Conteúdo para efeitos simples */}
-                      {!effect.isComplex && (
-                        <div className="p-3 bg-gray-50 border-t border-gray-200">
-                          <p className="text-xs text-gray-600 italic">
-                            Efeito simples - sem configurações adicionais
-                          </p>
-                        </div>
-                      )}
+
                     </>
                   )}
                 </div>

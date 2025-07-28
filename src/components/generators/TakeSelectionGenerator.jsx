@@ -44,37 +44,44 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     const storeEffectLines = lines.filter(line => line.startsWith('Store Effect'))
     const duplicates = {}
     
+    // Criar um mapa para rastrear a última ocorrência de cada linha
+    const lastOccurrenceMap = new Map()
+    
     storeEffectLines.forEach((line, index) => {
-      const lineNumber = index + 1
-      const isDuplicate = storeEffectLines.some((otherLine, otherIndex) => 
-        otherIndex !== index && otherLine === line
-      )
-      
-      if (isDuplicate) {
-        // Encontrar qual efeito/linha corresponde a esta linha do macro
+      if (lastOccurrenceMap.has(line)) {
+        // Esta é uma duplicata, marcar a última ocorrência
+        const lastIndex = lastOccurrenceMap.get(line)
+        
+        // Encontrar qual efeito/linha corresponde à última ocorrência
         const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o/)
         if (effectMatch) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
           
-          // Encontrar o efeito correspondente
+          // Encontrar o efeito correspondente à última ocorrência
+          let effectFound = false
           groups.forEach(group => {
             group.effects.forEach(effect => {
-              if (effect.effectNumber === effectNumber) {
+              if (effect.effectNumber === effectNumber && !effectFound) {
                 if (lineNumber) {
                   // É uma linha específica de efeito complexo
                   const line = effect.effectLines?.find(l => l.lineNumber === lineNumber)
                   if (line) {
                     duplicates[`line-${line.id}`] = true
+                    effectFound = true
                   }
                 } else {
                   // É um efeito não-complexo
                   duplicates[`effect-${effect.id}`] = true
+                  effectFound = true
                 }
               }
             })
           })
         }
+      } else {
+        // Primeira ocorrência, armazenar o índice
+        lastOccurrenceMap.set(line, index)
       }
     })
     

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 
 function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
@@ -33,12 +33,17 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
     onMacroGenerated(macro)
   }, [groups, onMacroGenerated])
 
-  // Verificar duplicatas sempre que o macro for alterado
-  useEffect(() => {
+  // Verificar duplicatas sempre que o macro for alterado (com debounce)
+  const debouncedAnalyzeDuplicates = useCallback(() => {
     const macro = generateTakeSelectionMacro(groups)
     const foundDuplicates = analyzeMacroForDuplicates(macro)
     setDuplicates(foundDuplicates)
   }, [groups])
+
+  useEffect(() => {
+    const timeoutId = setTimeout(debouncedAnalyzeDuplicates, 300)
+    return () => clearTimeout(timeoutId)
+  }, [debouncedAnalyzeDuplicates])
 
 
 
@@ -53,11 +58,11 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
       lineCounts[line] = (lineCounts[line] || 0) + 1
     })
     
-    // Para cada linha que aparece mais de uma vez, marcar a última ocorrência
+    // Para cada linha que aparece mais de uma vez, marcar TODAS as ocorrências
     Object.keys(lineCounts).forEach(line => {
       if (lineCounts[line] > 1) {
-        // Encontrar todos os efeitos que geram esta linha
-        const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o/)
+        // Regex melhorado para capturar mais variações de Store Effect
+        const effectMatch = line.match(/Store Effect (\d+)(?:\.(\d+))?(?:\.\*)? \/o?/)
         if (effectMatch) {
           const effectNumber = parseInt(effectMatch[1])
           const lineNumber = effectMatch[2] ? parseInt(effectMatch[2]) : null
@@ -69,9 +74,9 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
               if (effect.effectNumber === effectNumber) {
                 if (lineNumber) {
                   // É uma linha específica de efeito complexo
-                  const line = effect.effectLines?.find(l => l.lineNumber === lineNumber)
-                  if (line) {
-                    matchingEffects.push({ type: 'line', id: line.id, effectId: effect.id })
+                  const effectLine = effect.effectLines?.find(l => l.lineNumber === lineNumber)
+                  if (effectLine) {
+                    matchingEffects.push({ type: 'line', id: effectLine.id, effectId: effect.id })
                   }
                 } else {
                   // É um efeito não-complexo
@@ -81,23 +86,28 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
             })
           })
           
-          // Marcar o efeito com maior ID (mais recente)
-          if (matchingEffects.length > 0) {
-            const lastEffect = matchingEffects.reduce((prev, current) => 
-              current.id > prev.id ? current : prev
-            )
-            
-            if (lastEffect.type === 'line') {
-              duplicates[`line-${lastEffect.id}`] = true
+          // Marcar TODOS os efeitos correspondentes como duplicatas
+          matchingEffects.forEach(match => {
+            if (match.type === 'line') {
+              duplicates[`line-${match.id}`] = true
             } else {
-              duplicates[`effect-${lastEffect.id}`] = true
+              duplicates[`effect-${match.id}`] = true
             }
-          }
+          })
         }
       }
     })
     
     return duplicates
+  }
+
+  // Função para contar duplicatas
+  const getDuplicateStats = () => {
+    const duplicateCount = Object.keys(duplicates).length
+    const effectDuplicates = Object.keys(duplicates).filter(key => key.startsWith('effect-')).length
+    const lineDuplicates = Object.keys(duplicates).filter(key => key.startsWith('line-')).length
+    
+    return { total: duplicateCount, effects: effectDuplicates, lines: lineDuplicates }
   }
 
   const generateTakeSelectionMacro = (groupsData) => {
@@ -402,7 +412,15 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="text-lg font-medium text-gray-900">Configuração de Grupos e Efeitos</h4>
+        <div className="flex items-center gap-3">
+          <h4 className="text-lg font-medium text-gray-900">Configuração de Grupos e Efeitos</h4>
+          {getDuplicateStats().total > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              {getDuplicateStats().total} duplicata{getDuplicateStats().total !== 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
         <button
           onClick={addGroup}
           className="flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -492,7 +510,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                         </button>
                       )}
                       {duplicates[`effect-${effect.id}`] && (
-                        <span className="text-xs text-red-600">Já usado</span>
+                        <span 
+                          className="text-xs text-red-600 cursor-help" 
+                          title="Este efeito aparece múltiplas vezes no macro. Isso pode causar conflitos no GrandMA2."
+                        >
+                          Já usado
+                        </span>
                       )}
                     </div>
                     
@@ -559,7 +582,12 @@ function TakeSelectionGenerator({ onMacroGenerated, initialGroups }) {
                                   min="1"
                                 />
                                 {duplicates[`line-${line.id}`] && (
-                                  <span className="text-xs text-red-600">Já usado</span>
+                                  <span 
+                                    className="text-xs text-red-600 cursor-help" 
+                                    title="Esta linha de efeito aparece múltiplas vezes no macro. Isso pode causar conflitos no GrandMA2."
+                                  >
+                                    Já usado
+                                  </span>
                                 )}
                                 <button
                                   onClick={() => removeEffectLine(group.id, effect.id, line.id)}

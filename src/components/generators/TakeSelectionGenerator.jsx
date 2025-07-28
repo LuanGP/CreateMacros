@@ -301,6 +301,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">Grupo</span>
                 <input
+                  id={`group-${group.id}`}
+                  name={`group-${group.id}`}
                   type="text"
                   value={group.groupValue}
                   onChange={(e) => updateGroup(group.id, 'groupValue', e.target.value)}
@@ -341,6 +343,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-700">Efeito</span>
                       <input
+                        id={`effect-${effect.id}`}
+                        name={`effect-${effect.id}`}
                         type="number"
                         value={effect.effectNumber}
                         onChange={(e) => updateEffect(group.id, effect.id, 'effectNumber', e.target.value)}
@@ -425,6 +429,8 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                               <div key={line.id} className="flex items-center gap-2">
                                 <span className="text-xs text-blue-700">Linha:</span>
                                 <input
+                                  id={`line-${line.id}`}
+                                  name={`line-${line.id}`}
                                   type="number"
                                   value={line.lineNumber}
                                   onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}

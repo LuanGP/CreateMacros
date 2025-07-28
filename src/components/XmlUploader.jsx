@@ -106,9 +106,7 @@ function XmlUploader({ onXmlLoaded }) {
     }
   }
 
-  const handleInputFile = () => {
-    document.getElementById('file-upload').click()
-  }
+
 
   return (
     <div className="space-y-4">
@@ -134,6 +132,7 @@ function XmlUploader({ onXmlLoaded }) {
       >
         <input
           id="file-upload"
+          name="xml-file"
           type="file"
           accept=".xml"
           onChange={handleChange}
@@ -155,15 +154,15 @@ function XmlUploader({ onXmlLoaded }) {
             <>
               <Upload className="w-12 h-12 mx-auto text-gray-400" />
               <div>
-                <p className="text-sm text-gray-600">
-                  Arraste e solte um arquivo XML aqui, ou{' '}
-                  <button
-                    onClick={handleInputFile}
-                    className="text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    clique para selecionar
-                  </button>
-                </p>
+                                 <p className="text-sm text-gray-600">
+                   Arraste e solte um arquivo XML aqui, ou{' '}
+                   <label
+                     htmlFor="file-upload"
+                     className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
+                   >
+                     clique para selecionar
+                   </label>
+                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Apenas arquivos XML gerados pelo CreateMacros são aceitos
                 </p>

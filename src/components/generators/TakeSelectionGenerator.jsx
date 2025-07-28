@@ -17,6 +17,7 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
   const [nextEffectLineId, setNextEffectLineId] = useState(1)
   const [invalidEffects, setInvalidEffects] = useState({})
   const [invalidLines, setInvalidLines] = useState({})
+  const [collapsedEffects, setCollapsedEffects] = useState({})
 
   // Gerar macro sempre que os dados mudarem
   useEffect(() => {
@@ -234,6 +235,13 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
     setInvalidLines(prev => ({ ...prev, [lineId]: false }))
   }
 
+  const toggleEffectCollapse = (effectId) => {
+    setCollapsedEffects(prev => ({
+      ...prev,
+      [effectId]: !prev[effectId]
+    }))
+  }
+
   const isLineNumberAvailable = (lineNumber, groupId, effectId, currentLineId) => {
     // Se o valor não for um número válido, não mostrar erro (permitir digitação)
     const numValue = parseInt(lineNumber)
@@ -392,58 +400,73 @@ function TakeSelectionGenerator({ onMacroGenerated }) {
                   {effect.isComplex && (
                     <div className="p-3 bg-blue-50 border-t border-blue-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-sm font-medium text-blue-900">Linhas do Efeito</h5>
-                        <button
-                          onClick={() => addEffectLine(group.id, effect.id)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                        >
-                          <Plus className="w-3 h-3" />
-                          Adicionar Linha
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <h5 className="text-sm font-medium text-blue-900">Linhas do Efeito</h5>
+                          <span className="text-xs text-blue-600">
+                            ({(effect.effectLines || []).length} linha{(effect.effectLines || []).length !== 1 ? 's' : ''})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => addEffectLine(group.id, effect.id)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Adicionar Linha
+                          </button>
+                          <button
+                            onClick={() => toggleEffectCollapse(effect.id)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                          >
+                            {collapsedEffects[effect.id] ? 'Expandir' : 'Minimizar'}
+                          </button>
+                        </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        {(effect.effectLines || []).map((line, lineIndex) => (
-                          <div key={line.id} className="flex items-center gap-2">
-                            <span className="text-xs text-blue-700">Linha:</span>
-                            <input
-                              type="number"
-                              value={line.lineNumber}
-                              onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
-                              onBlur={() => {
-                                const numValue = parseInt(line.lineNumber)
-                                const isDuplicate = !isNaN(numValue) && numValue > 0 && (effect.effectLines || []).some(l =>
-                                  l.id !== line.id && l.lineNumber === numValue
-                                )
-                                setInvalidLines(prev => ({
-                                  ...prev,
-                                  [line.id]: isDuplicate
-                                }))
-                              }}
-                              className={`w-16 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                                invalidLines[line.id] ? 'border-red-500 bg-red-50' : 'border-blue-300'
-                              }`}
-                              placeholder="Nº"
-                              min="1"
-                            />
-                            {invalidLines[line.id] && (
-                              <span className="text-xs text-red-600">Já usado</span>
-                            )}
-                            <button
-                              onClick={() => removeEffectLine(group.id, effect.id, line.id)}
-                              className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                        
-                        {(!effect.effectLines || effect.effectLines.length === 0) && (
-                          <p className="text-xs text-blue-600 italic">
-                            Nenhuma linha configurada. Adicione linhas para especificar quais linhas do efeito atualizar.
-                          </p>
-                        )}
-                      </div>
+                      {!collapsedEffects[effect.id] && (
+                        <div className="space-y-2">
+                          {(effect.effectLines || []).map((line, lineIndex) => (
+                            <div key={line.id} className="flex items-center gap-2">
+                              <span className="text-xs text-blue-700">Linha:</span>
+                              <input
+                                type="number"
+                                value={line.lineNumber}
+                                onChange={(e) => updateEffectLine(group.id, effect.id, line.id, 'lineNumber', e.target.value)}
+                                onBlur={() => {
+                                  const numValue = parseInt(line.lineNumber)
+                                  const isDuplicate = !isNaN(numValue) && numValue > 0 && (effect.effectLines || []).some(l =>
+                                    l.id !== line.id && l.lineNumber === numValue
+                                  )
+                                  setInvalidLines(prev => ({
+                                    ...prev,
+                                    [line.id]: isDuplicate
+                                  }))
+                                }}
+                                className={`w-16 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+                                  invalidLines[line.id] ? 'border-red-500 bg-red-50' : 'border-blue-300'
+                                }`}
+                                placeholder="Nº"
+                                min="1"
+                              />
+                              {invalidLines[line.id] && (
+                                <span className="text-xs text-red-600">Já usado</span>
+                              )}
+                              <button
+                                onClick={() => removeEffectLine(group.id, effect.id, line.id)}
+                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                          
+                          {(!effect.effectLines || effect.effectLines.length === 0) && (
+                            <p className="text-xs text-blue-600 italic">
+                              Nenhuma linha configurada. Adicione linhas para especificar quais linhas do efeito atualizar.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

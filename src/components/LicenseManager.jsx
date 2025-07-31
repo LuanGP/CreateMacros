@@ -19,7 +19,15 @@ const LicenseManager = ({ onLicenseValid }) => {
       const env = getEnvironment()
       setEnvironment(env)
       
-      // Verifica licença
+      // Se for web, permite acesso direto sem verificar licença
+      if (env === 'web') {
+        setLicenseStatus({ valid: true, isDemo: true })
+        onLicenseValid({ valid: true, isDemo: true })
+        setIsLoading(false)
+        return
+      }
+      
+      // Para desktop/mobile, verifica licença
       const status = await checkLicense()
       setLicenseStatus(status)
       

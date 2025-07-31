@@ -33,7 +33,7 @@ export const getEnvironment = () => {
     return 'mobile'
   }
   
-  // Padrão: web
+  // Padrão: web (navegador)
   return 'web'
 }
 
@@ -111,34 +111,36 @@ export const validateLicense = (encryptedHardwareId, licenseKey) => {
 export const checkLicense = async () => {
   const environment = getEnvironment()
   
-  // Web: sempre permite (demo)
+  // Web: sempre permite (demo) - não deveria chegar aqui
   if (environment === 'web') {
     return { valid: true, isDemo: true }
   }
   
   // Desktop: verifica hardware binding
   if (environment === 'desktop') {
-    const hardwareInfo = await getHardwareInfo()
-    
-    if (!hardwareInfo) {
-      return { valid: false, error: 'Não foi possível obter informações de hardware' }
-    }
-    
-    // Criptografa o hardware ID
-    const encryptedId = encryptHardwareId(hardwareInfo.hardwareId)
-    
-    // TODO: Implementar interface para o usuário inserir a licença
-    // Por enquanto, retorna como inválido para forçar a entrada da licença
-    return {
-      valid: false,
-      encryptedHardwareId: encryptedId,
-      hardwareInfo: hardwareInfo
+    try {
+      const hardwareInfo = await getHardwareInfo()
+      
+      if (!hardwareInfo) {
+        return { valid: false, error: 'Não foi possível obter informações de hardware' }
+      }
+      
+      // Criptografa o hardware ID
+      const encryptedId = encryptHardwareId(hardwareInfo.hardwareId)
+      
+      return {
+        valid: false,
+        encryptedHardwareId: encryptedId,
+        hardwareInfo: hardwareInfo
+      }
+    } catch (error) {
+      console.error('Erro ao verificar licença:', error)
+      return { valid: false, error: 'Erro ao verificar licença' }
     }
   }
   
   // Mobile: similar ao desktop
   if (environment === 'mobile') {
-    // TODO: Implementar para mobile
     return { valid: false, error: 'Versão mobile não implementada' }
   }
   

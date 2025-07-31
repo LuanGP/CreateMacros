@@ -2,17 +2,13 @@ import React, { useState } from 'react'
 import Header from './components/Header'
 import MacroGenerator from './components/MacroGenerator'
 import MacroPreview from './components/MacroPreview'
-import LicenseManager from './components/LicenseManager'
 import { Download, Code, Settings } from 'lucide-react'
 
 function App() {
   const [generatedMacro, setGeneratedMacro] = useState('')
   const [macroName, setMacroName] = useState('')
-  const [licenseStatus, setLicenseStatus] = useState(null)
 
-  const handleLicenseValid = (status) => {
-    setLicenseStatus(status)
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,9 +55,6 @@ function App() {
           </div>
         </div>
       </footer>
-
-      {/* Gerenciador de Licença */}
-      <LicenseManager onLicenseValid={handleLicenseValid} />
     </div>
   )
 }
